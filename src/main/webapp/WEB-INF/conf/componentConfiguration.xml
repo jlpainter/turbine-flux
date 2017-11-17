@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<componentConfig>
+    <!-- Torque Component -->
+    <torque>
+       <configfile>/WEB-INF/conf/Torque.properties</configfile>
+    </torque>
+    <cache cacheInitialSize="20" cacheCheckFrequency="5"/>
+    <mimetype/>
+    <crypto>
+      <algorithm>
+        <unix>org.apache.fulcrum.crypto.provider.UnixCrypt</unix>
+        <clear>org.apache.fulcrum.crypto.provider.ClearCrypt</clear>
+        <java>org.apache.fulcrum.crypto.provider.JavaCrypt</java>
+        <oldjava>org.apache.fulcrum.crypto.provider.OldJavaCrypt</oldjava>
+      </algorithm>
+    </crypto>
+    <localization>
+      <bundles>
+        <bundle>org.apache.turbine.fluxtest.L10N</bundle>
+      </bundles>
+    </localization>
+    <!-- Disable if you experience startup problems with Java8 -->
+    <intake>
+      <serialDataPath>WEB-INF/appData.ser</serialDataPath>
+      <xmlPaths>
+        <xmlPath>WEB-INF/conf/intake.xml</xmlPath>
+      </xmlPaths>
+    </intake>
+    <factory/>
+    <pool/>
+    <parser>
+        <!-- <urlCaseFolding>lower</urlCaseFolding> -->
+        <parameterEncoding>utf-8</parameterEncoding>
+        <automaticUpload>true</automaticUpload>
+    </parser>
+    <!-- defining specific inspectors -->
+    <json>
+       <annotationInspectors>
+            <primary>org.apache.fulcrum.json.jackson.SimpleNameIntrospector</primary>
+            <secondary>com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector</secondary>
+            <features>
+              <feature value="false" type="com.fasterxml.jackson.databind.SerializationFeature">FAIL_ON_EMPTY_BEANS</feature>
+              <feature value="false" type="com.fasterxml.jackson.databind.SerializationFeature">INDENT_OUTPUT</feature>
+              <feature value="true" type="com.fasterxml.jackson.core.JsonParser">ALLOW_UNQUOTED_FIELD_NAMES</feature>
+            </features>
+        </annotationInspectors>
+        <dateFormat>MM/dd/yyyy</dateFormat>
+        <cacheFilters>true</cacheFilters>
+        <!-- security feature -->
+        <escapeCharsGlobal>true</escapeCharsGlobal>
+        <!--  escapeCharsClass>net.example.EscapeCharClass</escapeCharsClass -->
+        <defaultTyping type="OBJECT_AND_NON_CONCRETE" key="type"/><!-- defaultTyping type="NON_FINAL" key="type"/-->
+        <!-- requires com.jayway dependency in pom -->
+        <!-- useJsonPath>true</useJsonPath -->
+    </json>
+    
+    <upload repository="/tmp" sizeMax="1048576" sizeThreshold="10240"/>
+        <!-- These components belong to the Fulcrum-Security services -->        
+    <securityService/>
+    <authenticator/>
+    <!--   <authenticator>
+          <algorithm>java</algorithm>
+          <cipher>SHA1</cipher>    </authenticator>   -->
+
+    <modelManager/>
+    <aclFactory/>
+    
+    <!--  
+       Fulcrum Components, e.g. json, XmlRpcServerComponent, cft. Fulcrum Component Configurations 
+     -->
+       
+     
+     <!--  
+     Pure Fulcrum Model
+    -->
+    <!--
+     <userManager> 
+       <className>org.apache.fulcrum.security.torque.om.TorqueTurbineUser</className>
+    </userManager>
+    <groupManager>
+        <className>org.apache.fulcrum.security.torque.om.TorqueTurbineGroup</className>
+    </groupManager>
+    <roleManager>
+        <className>org.apache.fulcrum.security.torque.om.TorqueTurbineRole</className>
+    </roleManager>
+    <permissionManager>
+        <className>org.apache.fulcrum.security.torque.om.TorqueTurbinePermission</className>
+    </permissionManager>
+    -->
+ 
+     <!-- 
+     Default classes implementing org.apache.fulcrum.security.model.turbine.entity interfaces 
+     -->
+    <!--userManager>
+        <className>org.apache.fulcrum.security.model.turbine.entity.impl.TurbineUserImpl</className>
+    </userManager>
+    <groupManager>
+        <className>org.apache.fulcrum.security.model.turbine.entity.impl.TurbineGroupImpl</className>
+    </groupManager>
+    <roleManager>
+        <className>org.apache.fulcrum.security.model.turbine.entity.impl.TurbineRoleImpl</className>
+    </roleManager>
+    <permissionManager>
+        <className>org.apache.fulcrum.security.model.turbine.entity.impl.TurbinePermissionImpl</className>
+    </permissionManager -->
+    
+    <!-- 
+     Custom Turbine ORM Torque classes could not yet be used: 
+     - requires Torque 4.1 or if using Torque 4.0 reqires manually adding the interfaces in T-classes
+     - requires attribute baseClass in fulcrum-turbine-schema.xml table elements set to appropriate org.apache.fulcrum.security.model.turbine.entity interfaces
+     - requires attribute peerClass in fulcrum-turbine-schema.xml table elements set to org.apache.fulcrum.security.torque.peer.TorqueTurbinePeer 
+     -->
+     
+     <userManager>
+     <className>org.apache.turbine.fluxtest.om.TurbineUser</className>
+        <peerClassName>org.apache.turbine.fluxtest.om.TurbineUserPeerImpl</peerClassName>
+    </userManager>
+    <groupManager>
+        <className>org.apache.turbine.fluxtest.om.TurbineGroup</className>
+        <peerClassName>org.apache.turbine.fluxtest.om.TurbineGroupPeerImpl</peerClassName>
+    </groupManager>
+    <roleManager>
+        <className>org.apache.turbine.fluxtest.om.TurbineRole</className>
+        <peerClassName>org.apache.turbine.fluxtest.om.TurbineRolePeerImpl</peerClassName>
+    </roleManager>
+    <permissionManager>
+        <className>org.apache.turbine.fluxtest.om.TurbinePermission</className>
+        <peerClassName>org.apache.turbine.fluxtest.om.TurbinePermissionPeerImpl</peerClassName>
+    </permissionManager>
+     <peerManager/>
+     
+</componentConfig>

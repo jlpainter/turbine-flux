@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Context>
+    <WatchedResource>WEB-INF/web.xml</WatchedResource>
+    <WatchedResource>${catalina.base}/conf/web.xml</WatchedResource>
+	<Resource name="jdbc/turbine" global="jdbc/turbine" auth="Container" type="javax.sql.DataSource" 
+		driverClassName="com.mysql.jdbc.Driver" 
+		url="jdbc:mysql://localhost:3306/turbine" 
+		username="ipsys" password="ip2002" 
+		maxTotal="100" maxIdle="20" minIdle="5" maxWaitMillis="10000"/>
+</Context>

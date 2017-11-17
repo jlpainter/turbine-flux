@@ -1,0 +1,41 @@
+#**
+
+@author <a href="mailto:jvanzyl@periapt.com">Jason van Zyl</a>
+@version $Id: FluxPermissionList.vm,v 1.1.1.1 2003-06-19 23:07:21 painter Exp $
+
+*#
+
+
+#set ( $headings = ["Permission Name"] )
+
+<table class="w3-table w3-bordered">
+        <tr>
+          #foreach ($heading in $headings)
+          <th>$heading</th>
+          #end
+        </tr>
+  
+        #foreach ($permission in $flux.Permissions)
+        <tr>
+          #formCell ($permission.Name)
+          <td>
+            <font face="$ui.sansSerifFonts">
+              <a href="$link.setPage("permission,FluxPermissionForm.vm").addPathInfo("name",$permission.Name).addQueryData("mode","modify")">Details</a> &nbsp;
+              <a href="$link.setPage("permission,FluxPermissionForm.vm").addPathInfo("name",$permission.Name).addQueryData("mode","delete")">Remove</a>
+            </font>
+          </td>
+        </tr>
+        #end
+  <tr>
+    <td>
+      <font face="$ui.sansSerifFonts">
+        <a href="$link.setPage("permission,FluxPermissionForm.vm").addQueryData("mode","insert")">Add Permission</a>
+      </font>
+    <td>
+  </tr>
+</table>
+
+#if ($showEmbeddedMenu)
+  <hr size="1" noshade>
+  #parse ("screens/FluxEmbeddedMenu.vm")
+#end

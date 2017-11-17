@@ -1,0 +1,15 @@
+<Configure class="org.eclipse.jetty.webapp.WebAppContext">
+  <New id="Turbine" class="org.eclipse.jetty.plus.jndi.Resource">
+    <Arg></Arg> <!-- reference to WebAppContext requires jetty 9.x only  -->
+    <Arg>jdbc/turbine</Arg>
+    <Arg>
+        <New class="org.apache.commons.dbcp.BasicDataSource">
+           <Set name="driverClassName">com.mysql.jdbc.Driver</Set>
+            <Set name="url">jdbc:mysql://localhost:3306/turbine</Set>
+            <Set name="username">ipsys</Set>
+            <Set name="password">ip2002</Set>
+            <Set name="validationQuery">SELECT 1</Set>
+        </New>
+    </Arg>
+  </New>
+</Configure>

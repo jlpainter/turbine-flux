@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+
+<!DOCTYPE dataset SYSTEM "file://torque-security-data.dtd">
+
+<!-- =============================================================================== -->
+<!--                                                                                 -->
+<!-- Default Values for Admin and normal User                                        -->
+<!--                                                                                 -->
+<!-- @version $Id: turbine-security-data.xml 615328 2008-01-25 20:25:05Z tv $ -->
+<!--                                                                                 -->
+<!-- =============================================================================== -->
+
+<dataset name="all">
+
+</dataset>

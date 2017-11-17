@@ -1,0 +1,33 @@
+#**
+
+Used to display the roles currently being used in
+the application.
+
+*#
+#set ( $headings = ["Role Name"] )
+
+<table class="w3-table w3-bordered">
+        <tr>
+          #foreach ($heading in $headings)
+          <th>$heading</th>
+          #end
+        </tr>
+        
+        #foreach ($role in $flux.Roles)
+	        #if ( $role.Name != "super_admin" )
+	        <tr>
+	        	<td> $role.Name </td>
+	          <td>
+	              <a href="$link.setPage("role,FluxRoleForm.vm").addPathInfo("name",$role.Name).addQueryData("mode","modify")">Details</a> &nbsp;
+	              <a href="$link.setPage("role,FluxRoleForm.vm").addPathInfo("name",$role.Name).addQueryData("mode","delete")">Remove</a>
+	          </td>
+	        </tr>
+	        #end
+        #end
+
+</table>
+
+#if ($showEmbeddedMenu)
+  <hr size="1" noshade>
+  #parse ("screens/FluxEmbeddedMenu.vm")
+#end
