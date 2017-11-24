@@ -10,7 +10,7 @@
 
 <h2>Roles for $user.FirstName $user.LastName</h2>
 
-<form method="post" action="$link.setAction("admin.UserAction").setPage("user,FluxUserList.vm")">
+<form method="post" action="$link.setAction("user.FluxUserAction").setPage("user,FluxUserList.vm")">
 
 <input type="hidden" name="username" value="$user.Name">
 <table class="w3-table w3-bordered">

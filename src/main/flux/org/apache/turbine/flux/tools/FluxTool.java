@@ -17,6 +17,7 @@ import org.apache.turbine.annotation.TurbineConfiguration;
 import org.apache.turbine.annotation.TurbineService;
 import org.apache.turbine.om.security.User;
 import org.apache.turbine.services.pull.ApplicationTool;
+import org.apache.turbine.services.pull.RunDataApplicationTool;
 import org.apache.turbine.services.security.SecurityService;
 import org.apache.turbine.util.RunData;
 import org.apache.turbine.util.template.SelectorBox;
@@ -26,7 +27,7 @@ import org.apache.turbine.util.template.SelectorBox;
  *
  * @version $Id: FluxTool.java,v 1.13 2017/11/16 11:24:41 painter Exp $
  */
-public class FluxTool implements ApplicationTool {
+public class FluxTool implements ApplicationTool, RunDataApplicationTool {
 
 	/** Injected service instance */
 	@TurbineService
@@ -51,14 +52,22 @@ public class FluxTool implements ApplicationTool {
 	/** A User object for use within the Flux API. */
 	private User user = null;
 
+	@Override
 	public void init(Object data) {
 		this.data = (RunData) data;
 	}
+	
+    @Override
+    public void refresh( RunData data )
+    {
+        this.data = data;
+    }
 
 	/**
 	 * Constructor does initialization stuff
 	 */
 	public FluxTool() {
+	
 	}
 
 	public Group getGroup() throws Exception {
@@ -177,5 +186,6 @@ public class FluxTool implements ApplicationTool {
 	public void refresh() {
 		// nothing to do here
 	}
+
 
 }
