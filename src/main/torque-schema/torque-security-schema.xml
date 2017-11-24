@@ -32,7 +32,7 @@
   xsi:schemaLocation="http://db.apache.org/torque/4.0/templates/database
         http://db.apache.org/torque/4.0/templates/database-strict.xsd"
   name="turbine"
-  defaultIdMethod="idbroker">
+  defaultIdMethod="none">
 
 
   <table name="TURBINE_PERMISSION" idMethod="idbroker" baseClass="org.apache.fulcrum.security.torque.turbine.DefaultAbstractTurbinePermission">

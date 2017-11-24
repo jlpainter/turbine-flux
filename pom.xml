@@ -163,7 +163,7 @@
 					</dependency>
 				</dependencies>
 				<!-- this is mysql specific -->
-				<executions>
+				<!-- executions>
 					<execution>
 						<id>create-db</id>
 						<phase>pre-integration-test</phase>
@@ -173,9 +173,9 @@
 						<configuration>
 							<orderFile>ascending</orderFile>
 							<fileset>
-								<basedir>${project.build.directory}/generated-sql/torque/mysql</basedir>
+								<basedir>${project.build.directory}/generated-sql/torque/mysql</basedir-->
 								<!-- basedir>${basedir}/target/generated-sql</basedir -->
-								<includes>
+								<!--includes>
 									<include>*.sql</include>
 								</includes>
 							</fileset>
@@ -195,7 +195,7 @@
 							</srcFiles>
 						</configuration>
 					</execution>
-				</executions>
+				</executions-->
 			</plugin>
 
 			<!-- jetty:run checks deployed war http://localhost:8081/app/ Using jetty 

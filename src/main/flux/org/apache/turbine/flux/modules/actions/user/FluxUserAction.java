@@ -1,5 +1,7 @@
 package org.apache.turbine.flux.modules.actions.user;
 
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -11,6 +13,8 @@ import org.apache.fulcrum.security.util.GroupSet;
 import org.apache.fulcrum.security.util.RoleSet;
 import org.apache.turbine.annotation.TurbineService;
 import org.apache.turbine.flux.modules.actions.FluxAction;
+import org.apache.turbine.fluxtest.om.TurbineUserGroupRole;
+import org.apache.turbine.fluxtest.om.TurbineUserGroupRolePeer;
 import org.apache.turbine.om.security.User;
 import org.apache.turbine.pipeline.PipelineData;
 import org.apache.turbine.services.security.SecurityService;
@@ -153,6 +157,21 @@ public class FluxUserAction extends FluxAction {
 							// add the role for this user
 							if (acl.hasRole(role) == false) {
 								acl.getRoles().add(role);
+								
+								TurbineUserGroupRole tugr =  new TurbineUserGroupRole();
+								tugr.setRoleId( (Integer) role.getId() );
+								tugr.setGroupId( (Integer) group.getId() );
+								tugr.setUserId( (Integer) user.getId() );
+								tugr.setNew( false );
+								//tugr.set
+								List<TurbineUserGroupRole> tgrSaved = TurbineUserGroupRolePeer.doSelect( tugr );
+								if (tgrSaved.isEmpty()) {
+								    tugr.setNew( true );
+								    TurbineUserGroupRolePeer.doInsert( tugr);
+								}
+								// contract problem
+								//security.grant(user, group, role);
+								
 							}
 						} else if (formGroupRole == null && acl.hasRole(role, group)) {
 							// revoke the role for this user
