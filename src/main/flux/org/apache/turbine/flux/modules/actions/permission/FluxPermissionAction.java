@@ -20,7 +20,6 @@ import org.apache.commons.configuration.Configuration;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.fulcrum.security.SecurityService;
 import org.apache.fulcrum.security.entity.Permission;
 import org.apache.fulcrum.security.util.EntityExistsException;
 import org.apache.fulcrum.security.util.UnknownEntityException;
@@ -29,6 +28,7 @@ import org.apache.turbine.annotation.TurbineConfiguration;
 import org.apache.turbine.annotation.TurbineService;
 import org.apache.turbine.flux.modules.actions.FluxAction;
 import org.apache.turbine.pipeline.PipelineData;
+import org.apache.turbine.services.security.SecurityService;
 import org.apache.turbine.util.RunData;
 import org.apache.velocity.context.Context;
 
@@ -61,15 +61,14 @@ public class FluxPermissionAction extends FluxAction {
 	 *                a generic exception.
 	 */
 	public void doInsert(PipelineData pipelineData, Context context) throws Exception {
-		RunData data = getRunData(pipelineData);
-		Permission permission = security.getPermissionManager().getPermissionInstance();
-		data.getParameters().setProperties(permission);
 
+		RunData data = getRunData(pipelineData);
+		Permission permission = security.getPermissionInstance();
 		String name = data.getParameters().getString("name");
 		permission.setName(name);
 
 		try {
-			security.getPermissionManager().addPermission(permission);
+			security.addPermission(permission);
 		} catch (EntityExistsException eee) {
 			context.put("name", name);
 			context.put("errorTemplate", "/screens/permission/FluxPermissionAlreadyExists.vm");
@@ -80,6 +79,7 @@ public class FluxPermissionAction extends FluxAction {
 			data.getParameters().add("mode", "insert");
 			setTemplate(data, "/permission/FluxPermissionForm.vm");
 		}
+
 	}
 
 	/**
@@ -95,12 +95,11 @@ public class FluxPermissionAction extends FluxAction {
 	 */
 	public void doUpdate(PipelineData pipelineData, Context context) throws Exception {
 		RunData data = getRunData(pipelineData);
-		Permission permission = security.getPermissionManager()
-				.getPermissionByName(data.getParameters().getString("name"));
-		String name = data.getParameters().getString("new_name");
+		Permission permission = security.getPermissionByName(data.getParameters().getString("oldName"));
+		String name = data.getParameters().getString("name");
 		if (!StringUtils.isEmpty(name)) {
 			try {
-				security.getPermissionManager().renamePermission(permission, name);
+				security.renamePermission(permission, name);
 			} catch (UnknownEntityException uee) {
 				/*
 				 * Should do something here but I still think we should use the an id so that
@@ -125,10 +124,9 @@ public class FluxPermissionAction extends FluxAction {
 	 */
 	public void doDelete(PipelineData pipelineData, Context context) throws Exception {
 		RunData data = getRunData(pipelineData);
-		Permission permission = security.getPermissionManager()
-				.getPermissionByName(data.getParameters().getString("name"));
+		Permission permission = security.getPermissionByName(data.getParameters().getString("name"));
 		try {
-			security.getPermissionManager().removePermission(permission);
+			security.removePermission(permission);
 		} catch (UnknownEntityException uee) {
 			/*
 			 * Should do something here but I still think we should use the an id so that

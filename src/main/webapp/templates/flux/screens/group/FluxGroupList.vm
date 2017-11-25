@@ -41,13 +41,13 @@ $page.setBgColor($ui.bgcolor)
       <table >
         <tr>
           #foreach ($heading in $headings)
-          #headerCell ($heading)
+          	<th>$heading</th>
           #end
         </tr>
         
         #foreach ($group in $flux.Groups)
         <tr>
-          #entryCell ($group.Name)
+          <td>$group.Name</td>
           <td>
             <font face="$ui.sansSerifFonts">
               <a href="$link.setPage("group,FluxGroupForm.vm").addPathInfo("name",$group.Name).addQueryData("mode","modify")">Details</a> &nbsp;
@@ -61,9 +61,7 @@ $page.setBgColor($ui.bgcolor)
   </tr>
   <tr>
     <td>
-      <font face="$ui.sansSerifFonts">
         <a href="$link.setPage("group,FluxGroupForm.vm").addQueryData("mode","insert")">Add Group</a>
-      </font>
     <td>
   </tr>
 </table>

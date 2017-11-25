@@ -83,13 +83,13 @@ public class FluxRoleAction extends FluxAction {
 	 */
 	public void doUpdate(PipelineData pipelineData, Context context) throws Exception {
 		RunData data = getRunData(pipelineData);
-		Role role = security.getRoleByName(data.getParameters().getString("name"));
-		data.getParameters().setProperties(role);
-		String name = data.getParameters().getString("new_name");
+		Role role = security.getRoleByName(data.getParameters().getString("oldName"));
+		String name = data.getParameters().getString("name");
 		if (!StringUtils.isEmpty(name)) {
 			try {
 				security.renameRole(role, name);
 			} catch (UnknownEntityException uee) {
+				log.error("Could not rename role: " + uee);
 				/*
 				 * Should do something here but I still think we should use the an id so that
 				 * this can't happen.
@@ -113,8 +113,9 @@ public class FluxRoleAction extends FluxAction {
 	 */
 	public void doDelete(PipelineData pipelineData, Context context) throws Exception {
 		RunData data = getRunData(pipelineData);
-		Role role = security.getRoleByName(data.getParameters().getString("name"));
+
 		try {
+			Role role = security.getRoleByName(data.getParameters().getString("name"));
 			security.removeRole(role);
 		} catch (UnknownEntityException uee) {
 			/*
@@ -122,7 +123,7 @@ public class FluxRoleAction extends FluxAction {
 			 * this can't happen.
 			 */
 			log.error(uee);
-		} catch  ( Exception e ) {
+		} catch (Exception e) {
 			log.error("Could not remove role: " + e);
 		}
 	}

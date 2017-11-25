@@ -56,28 +56,20 @@ public class FluxTool implements ApplicationTool, RunDataApplicationTool {
 	public void init(Object data) {
 		this.data = (RunData) data;
 	}
-	
-    @Override
-    public void refresh( RunData data )
-    {
-        this.data = data;
-    }
 
 	/**
 	 * Constructor does initialization stuff
 	 */
 	public FluxTool() {
-	
+
 	}
 
 	public Group getGroup() throws Exception {
-		if (group == null) {
-			String name = data.getParameters().getString("name");
-			if (name == null || name.length() == 0) {
-				group = security.getGroupInstance(null);
-			} else {
-				group = security.getGroupByName(name);
-			}
+		String name = data.getParameters().getString("name");
+		if (StringUtils.isEmpty(name)) {
+			group = security.getGroupInstance();
+		} else {
+			group = security.getGroupByName(name);
 		}
 		return group;
 	}
@@ -91,13 +83,11 @@ public class FluxTool implements ApplicationTool, RunDataApplicationTool {
 	}
 
 	public Role getRole() throws Exception {
-		if (role == null) {
-			String name = data.getParameters().getString("name");
-			if (name == null || name.length() == 0) {
-				role = security.getRoleInstance(null);
-			} else {
-				role = security.getRoleByName(name);
-			}
+		String name = data.getParameters().getString("name");
+		if (StringUtils.isEmpty(name)) {
+			role = security.getRoleInstance();
+		} else {
+			role = security.getRoleByName(name);
 		}
 		return role;
 	}
@@ -129,7 +119,7 @@ public class FluxTool implements ApplicationTool, RunDataApplicationTool {
 
 	public User getUser() throws Exception {
 		String name = data.getParameters().getString("username");
-		if (StringUtils.isEmpty(name) ) {
+		if (StringUtils.isEmpty(name)) {
 			user = security.getUserInstance();
 		} else {
 			user = security.getUser(name);
@@ -183,9 +173,14 @@ public class FluxTool implements ApplicationTool, RunDataApplicationTool {
 		return (List<User>) security.getUserManager().retrieveList(criteria);
 	}
 
+	@Override
+	public void refresh(RunData data) {
+		this.data = data;
+	}
+
+	@Override
 	public void refresh() {
 		// nothing to do here
 	}
-
 
 }

@@ -46,6 +46,7 @@ $page.setBgColor($ui.bgcolor)
           <font face="$ui.sansSerifFonts">
 
           #if ($flux.Mode == "modify")
+            <input type="hidden" name="oldName" value="$!flux.Role.Name">
             <input type="submit" name="eventSubmit_doUpdate" value="Update Role"/>
           #elseif ($flux.Mode == "delete")
             <input type="submit" name="eventSubmit_doDelete" value="Confirm Deletion"/>

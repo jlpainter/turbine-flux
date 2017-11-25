@@ -24,7 +24,11 @@ the application.
 	        </tr>
 	        #end
         #end
-
+  <tr>
+    <td>
+        <a href="$link.setPage("role,FluxRoleForm.vm").addQueryData("mode","insert")">Add Role</a>
+    <td>
+  </tr>
 </table>
 
 #if ($showEmbeddedMenu)

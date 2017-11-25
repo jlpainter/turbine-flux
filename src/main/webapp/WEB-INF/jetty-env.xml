@@ -5,7 +5,7 @@
     <Arg>
         <New class="org.apache.commons.dbcp.BasicDataSource">
            <Set name="driverClassName">com.mysql.jdbc.Driver</Set>
-            <Set name="url">jdbc:mysql://localhost:3308/turbine</Set>
+            <Set name="url">jdbc:mysql://localhost:3306/turbine</Set>
             <Set name="username">ipsys</Set>
             <Set name="password">ip2002</Set>
             <Set name="validationQuery">SELECT 1</Set>

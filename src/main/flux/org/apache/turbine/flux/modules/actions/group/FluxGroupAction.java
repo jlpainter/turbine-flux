@@ -19,7 +19,6 @@ package org.apache.turbine.flux.modules.actions.group;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.fulcrum.security.SecurityService;
 import org.apache.fulcrum.security.entity.Group;
 import org.apache.fulcrum.security.util.EntityExistsException;
 import org.apache.fulcrum.security.util.UnknownEntityException;
@@ -28,6 +27,7 @@ import org.apache.turbine.annotation.TurbineConfiguration;
 import org.apache.turbine.annotation.TurbineService;
 import org.apache.turbine.flux.modules.actions.FluxAction;
 import org.apache.turbine.pipeline.PipelineData;
+import org.apache.turbine.services.security.SecurityService;
 import org.apache.turbine.util.RunData;
 import org.apache.velocity.context.Context;
 
@@ -60,23 +60,25 @@ public class FluxGroupAction extends FluxAction {
 	 */
 	public void doInsert(PipelineData pipelineData, Context context) throws Exception {
 		RunData data = getRunData(pipelineData);
-		Group group = security.getGroupManager().getGroupInstance();
-		data.getParameters().setProperties(group);
 
 		String name = data.getParameters().getString("name");
-		group.setName(name);
+		if (!StringUtils.isEmpty(name)) {
 
-		try {
-			security.getGroupManager().addGroup(group);
-		} catch (EntityExistsException eee) {
-			context.put("name", name);
-			context.put("errorTemplate", "/screens/admin/group/GroupAlreadyExists.vm");
-			context.put("group", group);
-			/*
-			 * We are still in insert mode. So keep this value alive.
-			 */
-			data.getParameters().add("mode", "insert");
-			setTemplate(data, "/admin/group/GroupForm.vm");
+			try {
+				Group group = security.getGroupInstance();
+				data.getParameters().setProperties(group);
+				security.addGroup(group);
+			} catch (EntityExistsException eee) {
+				context.put("name", name);
+				context.put("errorTemplate", "/screens/admin/group/GroupAlreadyExists.vm");
+				/*
+				 * We are still in insert mode. So keep this value alive.
+				 */
+				data.getParameters().add("mode", "insert");
+				setTemplate(data, "/admin/group/GroupForm.vm");
+			}
+		} else {
+			log.error("Cannot add empty group name");
 		}
 
 	}
@@ -93,17 +95,21 @@ public class FluxGroupAction extends FluxAction {
 	 */
 	public void doUpdate(PipelineData pipelineData, Context context) throws Exception {
 		RunData data = getRunData(pipelineData);
-		Group group = security.getGroupManager().getGroupByName(data.getParameters().getString("name"));
-		data.getParameters().setProperties(group);
-		String name = data.getParameters().getString("new_name");
-		if (!StringUtils.isEmpty(name)) {
-			try {
-				security.getGroupManager().renameGroup(group, name);
-			} catch (UnknownEntityException uee) {
-				/*
-				 * Should do something here but I still think we should use the an id so that
-				 * this can't happen.
-				 */
+		String groupName = data.getParameters().getString("oldName");
+		if (!StringUtils.isEmpty(groupName)) {
+			Group group = security.getGroupByName(groupName);
+			String name = data.getParameters().getString("name");
+			if (!StringUtils.isEmpty(name)) {
+				try {
+					security.renameGroup(group, name);
+				} catch (UnknownEntityException uee) {
+					/*
+					 * Should do something here but I still think we should use the an id so that
+					 * this can't happen.
+					 */
+				}
+			} else {
+				log.error("Cannot update group to empty name");
 			}
 		} else {
 			log.error("Cannot update group to empty name");
@@ -121,11 +127,12 @@ public class FluxGroupAction extends FluxAction {
 	 *                a generic exception.
 	 */
 	public void doDelete(PipelineData pipelineData, Context context) throws Exception {
+
 		RunData data = getRunData(pipelineData);
-		Group group = security.getGroupManager().getGroupByName(data.getParameters().getString("name"));
-		data.getParameters().setProperties(group);
+
 		try {
-			security.getGroupManager().removeGroup(group);
+			Group group = security.getGroupByName(data.getParameters().getString("name"));
+			security.removeGroup(group);
 		} catch (UnknownEntityException uee) {
 			/*
 			 * Should do something here but I still think we should use the an id so that
