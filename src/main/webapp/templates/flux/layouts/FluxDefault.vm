@@ -1,4 +1,4 @@
-<table width="100%" cellpadding="0" cellspacing="0">
+<table class="w3-table">
   <tr>
     <td colspan="2" align="left">
       $navigation.setTemplate("/FluxTop.vm")

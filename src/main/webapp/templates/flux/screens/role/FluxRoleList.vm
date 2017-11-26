@@ -6,7 +6,9 @@ the application.
 *#
 #set ( $headings = ["Role Name"] )
 
-<table class="w3-table w3-bordered">
+<div class="w3-container w3-padding"> <h2>Current Roles</h2>  </div>
+
+<table class="w3-table w3-striped  w3-bordered">
         <tr>
           #foreach ($heading in $headings)
           <th>$heading</th>
@@ -18,18 +20,21 @@ the application.
 	        <tr>
 	        	<td> $role.Name </td>
 	          <td>
+	              <a href="$link.setPage("permission,FluxPermissionList.vm").addPathInfo("role",$role.Name)">Permissions</a> &nbsp;
 	              <a href="$link.setPage("role,FluxRoleForm.vm").addPathInfo("name",$role.Name).addQueryData("mode","modify")">Details</a> &nbsp;
 	              <a href="$link.setPage("role,FluxRoleForm.vm").addPathInfo("name",$role.Name).addQueryData("mode","delete")">Remove</a>
 	          </td>
 	        </tr>
 	        #end
         #end
-  <tr>
-    <td>
-        <a href="$link.setPage("role,FluxRoleForm.vm").addQueryData("mode","insert")">Add Role</a>
-    <td>
-  </tr>
+        
 </table>
+
+		<div class="w3-container w3-padding w3-center">
+			<a class="w3-btn w3-blue w3-round" style="width: 180px;"
+				href="$link.setPage("role,FluxRoleForm.vm").addQueryData("mode","insert")">Add New Role</a>
+		</div>
+
 
 #if ($showEmbeddedMenu)
   <hr size="1" noshade>

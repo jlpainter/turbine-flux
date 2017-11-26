@@ -5,6 +5,10 @@
 
 *#
 
+## Call this first so the role is cached
+#set ( $permissions = $flux.Permissions )
+
+<h2>Permissions for Role: $!flux.CachedRole.Name </h2>
 
 #set ( $headings = ["Permission Name"] )
 
@@ -15,22 +19,18 @@
           #end
         </tr>
   
-        #foreach ($permission in $flux.Permissions)
+        #foreach ($permission in $permissions )
         <tr>
-          #formCell ($permission.Name)
+          <td> $permission.Name </td>
           <td>
-            <font face="$ui.sansSerifFonts">
               <a href="$link.setPage("permission,FluxPermissionForm.vm").addPathInfo("name",$permission.Name).addQueryData("mode","modify")">Details</a> &nbsp;
               <a href="$link.setPage("permission,FluxPermissionForm.vm").addPathInfo("name",$permission.Name).addQueryData("mode","delete")">Remove</a>
-            </font>
           </td>
         </tr>
         #end
   <tr>
     <td>
-      <font face="$ui.sansSerifFonts">
         <a href="$link.setPage("permission,FluxPermissionForm.vm").addQueryData("mode","insert")">Add Permission</a>
-      </font>
     <td>
   </tr>
 </table>

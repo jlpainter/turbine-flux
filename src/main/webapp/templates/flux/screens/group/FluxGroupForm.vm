@@ -32,29 +32,27 @@ $page.setBgColor($ui.bgcolor)
       <tr>
         #formCell ("Group Name" "name" $!flux.Group.Name)
       </tr>
-
-      <tr>
-        <td align="$ui.buttonAlignment" bgcolor="$ui.buttonColor">
+	</table>
           #*
             Check for a mode, the update and delete buttons
             shouldn't appear when inserting a new user.
           *#
 
-          <font face="$ui.sansSerifFonts">
-
           #if ($flux.Mode == "modify")
-			<input type="hidden" name="oldName" value="$!flux.Group.Name">          
-            <input type="submit" name="eventSubmit_doUpdate" value="Update Group"/>
+            <input type="hidden" name="oldName" value="$!flux.Role.Name">
+			<div class="w3-container w3-padding w3-center">
+            	<input class="w3-btn w3-blue w3-round" style="width: 180px;" type="submit" name="eventSubmit_doUpdate" value="Update Group"/>
+            </div>
           #elseif ($flux.Mode == "delete")
-            <input type="submit" name="eventSubmit_doDelete" value="Confirm Deletion"/>
+			<div class="w3-container w3-padding w3-center">
+            	<input class="w3-btn w3-blue w3-round" style="width: 180px;" type="submit" name="eventSubmit_doDelete" value="Confirm Deletion"/>
+			</div>
           #else
-            <input type="submit" name="eventSubmit_doInsert" value="Add Group"/>
+			<div class="w3-container w3-padding w3-center">
+            	<input class="w3-btn w3-blue w3-round" style="width: 180px;" type="submit" name="eventSubmit_doInsert" value="Add Group"/>
+			</div>
           #end
-          
-          </font>
-       <td>
-     </tr>
-  </table>
+
   </div>
 <!-- why is this here? !FIXME!
   <input type="hidden" name="userid" value="$!user.UserId"/>

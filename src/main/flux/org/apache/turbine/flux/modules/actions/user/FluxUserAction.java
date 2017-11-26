@@ -1,6 +1,5 @@
 package org.apache.turbine.flux.modules.actions.user;
 
-import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -9,10 +8,11 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.fulcrum.security.entity.Group;
 import org.apache.fulcrum.security.entity.Role;
 import org.apache.fulcrum.security.model.turbine.TurbineAccessControlList;
-import org.apache.fulcrum.security.model.turbine.entity.impl.TurbineUserImpl;
 import org.apache.fulcrum.security.torque.om.TurbineUser;
+import org.apache.fulcrum.security.torque.om.TurbineUserPeer;
 import org.apache.fulcrum.security.util.GroupSet;
 import org.apache.fulcrum.security.util.RoleSet;
+import org.apache.torque.criteria.Criteria;
 import org.apache.turbine.annotation.TurbineService;
 import org.apache.turbine.flux.modules.actions.FluxAction;
 import org.apache.turbine.fluxtest.om.TurbineUserGroupRole;
@@ -64,12 +64,26 @@ public class FluxUserAction extends FluxAction {
 					/*
 					 * Create a new user modeled directly from the SecurityServiceTest method
 					 */
-					User user = new org.apache.turbine.om.security.DefaultUserImpl(new TurbineUserImpl());
-					data.getParameters().setProperties(user);
-					user.setAccessCounter(0);
-					user.setName(username);
-					
-					security.addUser(user,password);					
+
+					// currently broken, gives wrong user instance type
+					// User user = security.getUserInstance(username);
+					// data.getParameters().setProperties(user);
+					// security.addUser(user,password);
+
+					// create the turbine user object directly
+					TurbineUser tu = new TurbineUser();
+					data.getParameters().setProperties(tu);
+
+					// make sure username is set
+					tu.setEntityName(username);
+
+					// save
+					tu.setNew(true);
+					tu.save();
+
+					// Use security to force the password
+					security.forcePassword((User) tu, password);
+
 				} catch (Exception e) {
 					log.error("Error adding new user: " + e);
 				}
@@ -96,26 +110,35 @@ public class FluxUserAction extends FluxAction {
 				String password = data.getParameters().getString("password");
 
 				// Load the user
-				TurbineUser user = security.getUser(username);
+				Criteria criteria = new Criteria();
+				criteria.where(TurbineUserPeer.LOGIN_NAME, username);
+				TurbineUser user = TurbineUserPeer.doSelectSingleRecord(criteria);
 
-				// get old password
-				String oldpw = user.getPassword();
+				// this gives the wrong user type object
+				// TurbineUser user = security.getUser(username);
+				
+				// This wrapped user does work for change password though... see below
+				User tuwrap = security.getUser(username);
 
-				// update all properties from form
-				data.getParameters().setProperties(user);
+				if (user != null && tuwrap != null) {
 
-				// If we did not get a password, use the old one
-				if (!StringUtils.isEmpty(password)) {
-					user.setPassword(oldpw);
-					security.forcePassword((User) user, oldpw);
-				} else {
-					user.setPassword(password);
-					security.forcePassword((User) user, password);
+					// get old password
+					String oldpw = user.getPassword();
+
+					// update all properties from form
+					data.getParameters().setProperties(user);
+
+					// save the changes to the user account
+					user.setNew(false);
+					user.setModified(true);
+					user.save();
+
+					// Only update if we received a new (non-empty) password
+					if (!StringUtils.isEmpty(password)) {
+						security.changePassword(tuwrap, oldpw, password);
+					}
+
 				}
-
-				// save the changes to the user account
-				user.setModified(true);
-				user.save();
 
 			} else {
 				log.error("User does not exist!");
@@ -133,8 +156,21 @@ public class FluxUserAction extends FluxAction {
 			String username = data.getParameters().getString("username");
 			if (!StringUtils.isEmpty(username)) {
 				if (security.accountExists(username)) {
+
+					// revoke all permissions - currently broken
+					// security.revokeAll(user);
+					// security.removeUser(user);
+
+					// get the user and revoke all permissions
 					User user = security.getUser(username);
-					security.removeUser(user);
+					revokeAll(user);
+
+					// manually delete from the turbine user table entry
+					Criteria criteria = new Criteria();
+					criteria.where(TurbineUserPeer.LOGIN_NAME, username);
+					TurbineUser tu = TurbineUserPeer.doSelectSingleRecord(criteria);
+					TurbineUserPeer.doDelete(tu);
+
 				} else {
 					log.error("User does not exist!");
 				}
@@ -203,17 +239,17 @@ public class FluxUserAction extends FluxAction {
 										tugr.setNew(true);
 										TurbineUserGroupRolePeer.doInsert(tugr);
 									}
-									
+
 								}
 
 							} else {
 
 								// only remove if it was previously assigned
 								if (acl.hasRole(role, group)) {
-									
+
 									// revoke the role for this user
 									acl.getRoles(group).remove(role);
-									
+
 									// build the db obj and remove it
 									TurbineUserGroupRole tugr = new TurbineUserGroupRole();
 									tugr.setRoleId((Integer) role.getId());
@@ -222,7 +258,7 @@ public class FluxUserAction extends FluxAction {
 									tugr.setNew(false);
 
 									TurbineUserGroupRole tgrSaved = TurbineUserGroupRolePeer.doSelectSingleRecord(tugr);
-									if ( tgrSaved != null )
+									if (tgrSaved != null)
 										TurbineUserGroupRolePeer.doDelete(tgrSaved);
 
 								}
@@ -247,6 +283,53 @@ public class FluxUserAction extends FluxAction {
 	public void doPerform(PipelineData pipelineData, Context context) throws Exception {
 		log.info("Running do perform!");
 		getRunData(pipelineData).setMessage("Can't find the requested action!");
+	}
+
+	/**
+	 * The security.revokeAll is currently not working
+	 * 
+	 * @param user
+	 */
+	private void revokeAll(User user) {
+		try {
+			// Get the Turbine ACL implementation
+			TurbineAccessControlList acl = security.getUserManager().getACL(user);
+
+			/*
+			 * Grab all the Groups and Roles in the system.
+			 */
+			GroupSet groups = security.getAllGroups();
+			RoleSet roles = security.getAllRoles();
+
+			for (Group group : groups) {
+				String groupName = group.getName();
+				for (Role role : roles) {
+
+					// only remove if it was previously assigned
+					if (acl.hasRole(role, group)) {
+
+						// revoke the role for this user
+						acl.getRoles(group).remove(role);
+
+						// build the db obj and remove it
+						TurbineUserGroupRole tugr = new TurbineUserGroupRole();
+						tugr.setRoleId((Integer) role.getId());
+						tugr.setGroupId((Integer) group.getId());
+						tugr.setUserId((Integer) user.getId());
+						tugr.setNew(false);
+
+						TurbineUserGroupRole tgrSaved = TurbineUserGroupRolePeer.doSelectSingleRecord(tugr);
+						if (tgrSaved != null)
+							TurbineUserGroupRolePeer.doDelete(tgrSaved);
+
+					}
+				}
+
+			}
+		} catch (Exception e) {
+			log.error("Error revoking role assignments for user: " + e);
+		}
+
 	}
 
 }
