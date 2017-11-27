@@ -19,10 +19,16 @@ package org.apache.turbine.flux.modules.actions.role;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.fulcrum.security.entity.Permission;
 import org.apache.fulcrum.security.entity.Role;
+import org.apache.fulcrum.security.torque.om.TurbinePermissionPeer;
+import org.apache.fulcrum.security.torque.om.TurbineRolePermissionPeer;
 import org.apache.fulcrum.security.util.EntityExistsException;
+import org.apache.fulcrum.security.util.PermissionSet;
 import org.apache.fulcrum.security.util.UnknownEntityException;
 import org.apache.fulcrum.yaafi.framework.util.StringUtils;
+import org.apache.torque.TorqueException;
+import org.apache.torque.criteria.Criteria;
 import org.apache.turbine.annotation.TurbineConfiguration;
 import org.apache.turbine.annotation.TurbineService;
 import org.apache.turbine.flux.modules.actions.FluxAction;
@@ -115,7 +121,15 @@ public class FluxRoleAction extends FluxAction {
 		RunData data = getRunData(pipelineData);
 
 		try {
+
 			Role role = security.getRoleByName(data.getParameters().getString("name"));
+			
+			// test that any linked permissions are also removed before removing the role
+			PermissionSet pset = security.getPermissions(role);
+			for (Permission p : pset)
+				removePermission(role, p);
+
+			// now remove the role
 			security.removeRole(role);
 		} catch (UnknownEntityException uee) {
 			/*
@@ -126,6 +140,33 @@ public class FluxRoleAction extends FluxAction {
 		} catch (Exception e) {
 			log.error("Could not remove role: " + e);
 		}
+	}
+
+	/**
+	 * Remove a role-permission link from the database
+	 * 
+	 * @param role
+	 * @param permission
+	 * @throws TorqueException
+	 */
+	private void removePermission(Role role, Permission permission) throws TorqueException {
+
+		// remove the role-permission link first
+		Criteria criteria = new Criteria();
+		criteria.where(TurbineRolePermissionPeer.ROLE_ID, role.getId());
+		criteria.where(TurbineRolePermissionPeer.PERMISSION_ID, permission.getId());
+		org.apache.fulcrum.security.torque.om.TurbineRolePermission trp = TurbineRolePermissionPeer
+				.doSelectSingleRecord(criteria);
+		TurbineRolePermissionPeer.doDelete(trp);
+
+		// now remove the permission
+		// use torque to locate and update the obj
+		criteria = new Criteria();
+		criteria.where(TurbinePermissionPeer.PERMISSION_ID, permission.getId());
+		org.apache.fulcrum.security.torque.om.TurbinePermission tp = TurbinePermissionPeer
+				.doSelectSingleRecord(criteria);
+		TurbinePermissionPeer.doDelete(tp);
+
 	}
 
 	/**

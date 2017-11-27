@@ -99,13 +99,18 @@ public class FluxTool implements ApplicationTool, RunDataApplicationTool {
 	}
 
 	public Permission getPermission() throws Exception {
-		
-		if (permission == null) {
-			String name = data.getParameters().getString("name");
-			if (name == null || name.length() == 0) {
-				permission = security.getPermissionInstance(null);
-			} else {
-				permission = security.getPermissionByName(name);
+
+		// make sure that the get permission returns the one linked to the role
+		String name = data.getParameters().getString("name");
+		if (StringUtils.isEmpty(name)) {
+			permission = security.getPermissionInstance();
+		} else {
+			if (this.role != null) {
+				PermissionSet pset = security.getPermissions(role);
+				for (Permission p : pset)
+					if (p.getName().equals(name)) {
+						permission = p;
+					}
 			}
 		}
 		return permission;
@@ -113,17 +118,18 @@ public class FluxTool implements ApplicationTool, RunDataApplicationTool {
 
 	/**
 	 * Get last cached role - useful after calling getPermissions()
+	 * 
 	 * @return
 	 */
 	public Role getCachedRole() {
 		return role;
 	}
-	
+
 	/**
 	 * Get all permissions for a particular role.
 	 */
 	public PermissionSet getPermissions() throws Exception {
-		
+
 		// permissions are role based
 		String roleName = data.getParameters().getString("role");
 		if (StringUtils.isEmpty(roleName)) {

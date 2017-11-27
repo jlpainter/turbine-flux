@@ -1,45 +1,34 @@
 #**
 
+@author <a href="mailto:jeff@jivecast.com">Jeffery Painter</a>
 @author <a href="mailto:jvanzyl@periapt.com">Jason van Zyl</a>
-@version $Id: FluxGroupForm.vm,v 1.1.1.1 2003-06-19 23:07:21 painter Exp $
+@version $Id: FluxGroupForm.vm,v 1.1.1.1 2017-11-26 23:07:21 painter Exp $
 
 *#
 
-$page.setTitle("Group Administration")
-$page.setBgColor($ui.bgcolor)
 
-<form method="post" action="$link.setPage("group,FluxGroupList.vm").setAction("group.FluxGroupAction")">
-  <div align="left">
-    <table bgcolor="#ffffff" cellpadding="$ui.tableCellPadding">
+#if ($errorTemplate)
+	#parse ($errorTemplate)
+#end
 
-      #if ($errorTemplate)
-      <tr>
-        <td colspan="2">
-          <table bgcolor="#ffffff">
-            <tr>
-              <td>
-                <img src="$ui.image($ui.alertImage)">
-              </td>
-              <td>
-                #parse ($errorTemplate)
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-      #end
-      
+
+<form 
+	method="post" 
+	action="$link.setPage("group,FluxGroupList.vm").setAction("group.FluxGroupAction")">
+  
+	<table class="w3-table w3-striped  w3-bordered">
       <tr>
         #formCell ("Group Name" "name" $!flux.Group.Name)
       </tr>
 	</table>
+
           #*
             Check for a mode, the update and delete buttons
             shouldn't appear when inserting a new user.
           *#
 
           #if ($flux.Mode == "modify")
-            <input type="hidden" name="oldName" value="$!flux.Role.Name">
+            <input type="hidden" name="oldName" value="$!flux.Group.Name">
 			<div class="w3-container w3-padding w3-center">
             	<input class="w3-btn w3-blue w3-round" style="width: 180px;" type="submit" name="eventSubmit_doUpdate" value="Update Group"/>
             </div>
@@ -52,11 +41,7 @@ $page.setBgColor($ui.bgcolor)
             	<input class="w3-btn w3-blue w3-round" style="width: 180px;" type="submit" name="eventSubmit_doInsert" value="Add Group"/>
 			</div>
           #end
-
-  </div>
-<!-- why is this here? !FIXME!
-  <input type="hidden" name="userid" value="$!user.UserId"/>
--->
+  
 </form>
 
 #if ($showEmbeddedMenu)

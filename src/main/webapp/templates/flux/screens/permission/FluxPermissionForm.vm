@@ -5,57 +5,44 @@
 
 *#
 
-<form method="post" action="$link.setPage("permission,FluxPermissionList.vm").setAction("permission.FluxPermissionAction")">
-  <div align="left">
-    <table class="w3-table">
+#if ($errorTemplate)
+	#parse ($errorTemplate)
+#end
 
-      #if ($errorTemplate)
-      <tr>
-        <td colspan="4">
-          <table bgcolor="#ffffff">
-            <tr>
-              <td>
-                <img src="$ui.image($ui.alertImage)">
-              </td>
-              <td>
-                #parse ($errorTemplate)
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-      #end
-      
+<form 
+	method="post" 
+	action="$link.setPage("permission,FluxPermissionList.vm").setAction("permission.FluxPermissionAction")">
+
+	## All permissions are related to a particular role
+	<input type="hidden" name="role" value="$!flux.CachedRole.Name">
+  
+	<table class="w3-table w3-striped  w3-bordered">
       <tr>
         #formCell ("Permission Name" "name" $!flux.Permission.Name)
       </tr>
+	</table>
 
-      <tr>
-        <td>
+
           #*
             Check for a mode, the update and delete buttons
             shouldn't appear when inserting a new user.
           *#
 
-          <font face="$ui.sansSerifFonts">
-
           #if ($flux.Mode == "modify")
-          	<input type="hidden" name="oldName" value="$!flux.Permission.Name">
-            <input type="submit" name="eventSubmit_doUpdate" value="Update Permission"/>
+            <input type="hidden" name="oldName" value="$!flux.Permission.Name">
+			<div class="w3-container w3-padding w3-center">
+            	<input class="w3-btn w3-blue w3-round" style="width: 180px;" type="submit" name="eventSubmit_doUpdate" value="Update Permission"/>
+            </div>
           #elseif ($flux.Mode == "delete")
-            <input type="submit" name="eventSubmit_doDelete" value="Confirm Deletion"/>
+			<div class="w3-container w3-padding w3-center">
+            	<input class="w3-btn w3-blue w3-round" style="width: 180px;" type="submit" name="eventSubmit_doDelete" value="Confirm Deletion"/>
+			</div>
           #else
-            <input type="submit" name="eventSubmit_doInsert" value="Add Permission"/>
+			<div class="w3-container w3-padding w3-center">
+            	<input class="w3-btn w3-blue w3-round" style="width: 180px;" type="submit" name="eventSubmit_doInsert" value="Add Permission"/>
+			</div>
           #end
 
-          </font>
-       </td>
-     </tr>
-  </table>
-  </div>
-<!-- why is this here? !FIXME!
-  <input type="hidden" name="userid" value="$!user.UserId"/>
--->
 </form>
 
 #if ($showEmbeddedMenu)
