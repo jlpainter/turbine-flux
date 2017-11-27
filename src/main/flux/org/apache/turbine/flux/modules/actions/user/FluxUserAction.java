@@ -17,6 +17,7 @@ import org.apache.turbine.annotation.TurbineService;
 import org.apache.turbine.flux.modules.actions.FluxAction;
 import org.apache.turbine.fluxtest.om.TurbineUserGroupRole;
 import org.apache.turbine.fluxtest.om.TurbineUserGroupRolePeer;
+import org.apache.turbine.om.security.TurbineUserDelegate;
 import org.apache.turbine.om.security.User;
 import org.apache.turbine.pipeline.PipelineData;
 import org.apache.turbine.services.security.SecurityService;
@@ -66,12 +67,12 @@ public class FluxUserAction extends FluxAction {
 					 */
 
 					// currently broken, gives wrong user instance type
-					// User user = security.getUserInstance(username);
-					// data.getParameters().setProperties(user);
-					// security.addUser(user,password);
+					User user = security.getUserInstance(username);
+					data.getParameters().setProperties(user);
+					security.addUser(user,password);
 
 					// create the turbine user object directly
-					TurbineUser tu = new TurbineUser();
+					/*TurbineUser tu = new TurbineUser();
 					data.getParameters().setProperties(tu);
 
 					// make sure username is set
@@ -79,10 +80,11 @@ public class FluxUserAction extends FluxAction {
 
 					// save
 					tu.setNew(true);
-					tu.save();
+					tu.save();*/
 
 					// Use security to force the password
-					security.forcePassword((User) tu, password);
+					//security.forcePassword((User) tu, password);
+					security.forcePassword(user, password);
 
 				} catch (Exception e) {
 					log.error("Error adding new user: " + e);
@@ -110,9 +112,9 @@ public class FluxUserAction extends FluxAction {
 				String password = data.getParameters().getString("password");
 
 				// Load the user
-				Criteria criteria = new Criteria();
+				/*Criteria criteria = new Criteria();
 				criteria.where(TurbineUserPeer.LOGIN_NAME, username);
-				TurbineUser user = TurbineUserPeer.doSelectSingleRecord(criteria);
+				TurbineUser user = TurbineUserPeer.doSelectSingleRecord(criteria);*/
 
 				// this gives the wrong user type object
 				// TurbineUser user = security.getUser(username);
@@ -120,18 +122,19 @@ public class FluxUserAction extends FluxAction {
 				// This wrapped user does work for change password though... see below
 				User tuwrap = security.getUser(username);
 
-				if (user != null && tuwrap != null) {
+				if (tuwrap != null) {
 
 					// get old password
-					String oldpw = user.getPassword();
+					String oldpw = tuwrap.getPassword();
 
 					// update all properties from form
-					data.getParameters().setProperties(user);
+					data.getParameters().setProperties(tuwrap);
 
 					// save the changes to the user account
-					user.setNew(false);
+					security.saveUser( tuwrap );
+					/*user.setNew(false);
 					user.setModified(true);
-					user.save();
+					user.save();*/
 
 					// Only update if we received a new (non-empty) password
 					if (!StringUtils.isEmpty(password)) {
@@ -166,10 +169,11 @@ public class FluxUserAction extends FluxAction {
 					revokeAll(user);
 
 					// manually delete from the turbine user table entry
-					Criteria criteria = new Criteria();
+					/*Criteria criteria = new Criteria();
 					criteria.where(TurbineUserPeer.LOGIN_NAME, username);
 					TurbineUser tu = TurbineUserPeer.doSelectSingleRecord(criteria);
-					TurbineUserPeer.doDelete(tu);
+					TurbineUserPeer.doDelete(tu);*/
+					security.removeUser( user );
 
 				} else {
 					log.error("User does not exist!");
@@ -228,7 +232,7 @@ public class FluxUserAction extends FluxAction {
 								// only add if new
 								if (!acl.hasRole(role, group)) {
 
-									TurbineUserGroupRole tugr = new TurbineUserGroupRole();
+									/*TurbineUserGroupRole tugr = new TurbineUserGroupRole();
 									tugr.setRoleId((Integer) role.getId());
 									tugr.setGroupId((Integer) group.getId());
 									tugr.setUserId((Integer) user.getId());
@@ -238,8 +242,9 @@ public class FluxUserAction extends FluxAction {
 									if (tgrSaved.isEmpty()) {
 										tugr.setNew(true);
 										TurbineUserGroupRolePeer.doInsert(tugr);
-									}
-
+									}*/
+									// turbine 4.1 should work this
+								    security.grant( user, group, role );
 								}
 
 							} else {
