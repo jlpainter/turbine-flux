@@ -24,18 +24,18 @@ $page.setBgColor($ui.bgcolor)
 	<tr>
 		<td>$group.Name</td>
 		<td>
-			<a href="$link.setPage("group,FluxGroupForm.vm").addPathInfo("name",$group.Name).addQueryData("mode","modify")">Details</a> &nbsp;
-			<a href="$link.setPage("group,FluxGroupForm.vm").addPathInfo("name",$group.Name).addQueryData("mode","delete")">Remove</a>
+			<a href="$link.setPage("group,FluxGroupForm.vm").addPathInfo("group",$group.Name).addQueryData("mode","modify")">Details</a> &nbsp;
+			<a href="$link.setPage("group,FluxGroupForm.vm").addPathInfo("group",$group.Name).addQueryData("mode","delete")">Remove</a>
 		</td>
 	</tr>
 	#end
 </table>
 
 
-		<div class="w3-container w3-padding w3-center">
-			<a class="w3-btn w3-blue w3-round" style="width: 180px;"
-				href="$link.setPage("group,FluxGroupForm.vm").addQueryData("mode","insert")">Add Group</a>
-		</div>
+<div class="w3-container w3-padding w3-center">
+	<a class="w3-btn w3-blue w3-round" style="width: 180px;"
+		href="$link.setPage("group,FluxGroupForm.vm").addQueryData("mode","insert")">Add Group</a>
+</div>
 
 #if ($showEmbeddedMenu)
   <hr size="1" noshade>

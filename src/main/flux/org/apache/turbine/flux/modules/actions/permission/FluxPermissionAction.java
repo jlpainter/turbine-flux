@@ -22,18 +22,16 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.fulcrum.security.entity.Permission;
 import org.apache.fulcrum.security.entity.Role;
+import org.apache.fulcrum.security.torque.om.TurbinePermission;
 import org.apache.fulcrum.security.torque.om.TurbinePermissionPeer;
 import org.apache.fulcrum.security.torque.om.TurbineRolePermissionPeer;
-import org.apache.fulcrum.security.util.DataBackendException;
 import org.apache.fulcrum.security.util.PermissionSet;
-import org.apache.fulcrum.security.util.UnknownEntityException;
+import org.apache.fulcrum.security.util.RoleSet;
 import org.apache.fulcrum.yaafi.framework.util.StringUtils;
 import org.apache.torque.criteria.Criteria;
 import org.apache.turbine.annotation.TurbineConfiguration;
 import org.apache.turbine.annotation.TurbineService;
 import org.apache.turbine.flux.modules.actions.FluxAction;
-import org.apache.turbine.fluxtest.om.TurbinePermission;
-import org.apache.turbine.fluxtest.om.TurbineRolePermission;
 import org.apache.turbine.pipeline.PipelineData;
 import org.apache.turbine.services.security.SecurityService;
 import org.apache.turbine.util.RunData;
@@ -47,6 +45,7 @@ import org.apache.velocity.context.Context;
  */
 public class FluxPermissionAction extends FluxAction {
 	private static Log log = LogFactory.getLog(FluxPermissionAction.class);
+	private static String PERM_ID = "permission";
 
 	/** Injected service instance */
 	@TurbineService
@@ -70,26 +69,15 @@ public class FluxPermissionAction extends FluxAction {
 	public void doInsert(PipelineData pipelineData, Context context) throws Exception {
 
 		RunData data = getRunData(pipelineData);
-		String role = data.getParameters().getString("role");
-		String name = data.getParameters().getString("name");
-		if (!StringUtils.isEmpty(name) && !StringUtils.isEmpty(role)) {
-			Role tr = security.getRoleByName(role);
-			if (tr != null) {
-				// create the permission
-				TurbinePermission tp = new TurbinePermission();
-				tp.setName(name);
-				tp.setNew(true);
-				tp.save();
-
-				// link role to permission
-				TurbineRolePermission trp = new TurbineRolePermission();
-				trp.setRoleId((int) tr.getId());
-				trp.setPermissionId((int) tp.getPermissionId());
-				trp.setNew(true);
-				trp.save();
-			}
+		String name = data.getParameters().getString(PERM_ID);
+		if (!StringUtils.isEmpty(name)) {
+			// create the permission
+			TurbinePermission tp = new TurbinePermission();
+			tp.setName(name);
+			tp.setNew(true);
+			tp.save();
 		} else {
-			data.setMessage("Cannot add permission with no name");
+			data.setMessage("Cannot add permission without a name");
 			data.getParameters().add("mode", "insert");
 			setTemplate(data, "/permission/FluxPermissionForm.vm");
 		}
@@ -108,37 +96,29 @@ public class FluxPermissionAction extends FluxAction {
 	 *                a generic exception.
 	 */
 	public void doUpdate(PipelineData pipelineData, Context context) throws Exception {
-
 		RunData data = getRunData(pipelineData);
-		String roleName = data.getParameters().getString("role");
-		String permName = data.getParameters().getString("oldName");
-		String newName = data.getParameters().getString("name");
 
-		if (!StringUtils.isEmpty(permName) && !StringUtils.isEmpty(newName) && !StringUtils.isEmpty(roleName)) {
-
-			Role role = security.getRoleByName(roleName);
-			Permission permission = getPermission(role, permName);
-
-			if (role != null && permission != null) {
-				try {
-
-					// this method is broken and not working, gives data backend exception
-					// security.renamePermission(permission, newName);
-
-					// use torque to locate and update the obj
-					Criteria criteria = new Criteria();
-					criteria.where(TurbinePermissionPeer.PERMISSION_ID, permission.getId());
-					org.apache.fulcrum.security.torque.om.TurbinePermission tp = TurbinePermissionPeer
-							.doSelectSingleRecord(criteria);
-					tp.setName(newName);
-					tp.setNew(false);
-					tp.setModified(true);
-					tp.save();
-
-				} catch (Exception e) {
-					log.error("Could not find update permission: " + e);
-				}
+		String old_name = data.getParameters().getString("oldName");
+		String name = data.getParameters().getString(PERM_ID);
+		if (!StringUtils.isEmpty(name)) {
+			
+			/* broken
+			Permission perm = security.getPermissionByName(old_name);
+			security.renamePermission(perm, name);
+			*/
+			
+			// manual rename
+			Criteria criteria = new Criteria();
+			criteria.where(TurbinePermissionPeer.PERMISSION_NAME, old_name);
+			TurbinePermission tp = TurbinePermissionPeer.doSelectSingleRecord(criteria);
+			if (tp != null) {
+				tp.setName(name);
+				tp.save();
 			}
+			
+		} else {
+			data.setMessage("Cannot find permission to update");
+			setTemplate(data, "/permission/FluxPermissionList.vm");
 		}
 	}
 
@@ -154,38 +134,45 @@ public class FluxPermissionAction extends FluxAction {
 	 */
 	public void doDelete(PipelineData pipelineData, Context context) throws Exception {
 		RunData data = getRunData(pipelineData);
-		String roleName = data.getParameters().getString("role");
-		String permName = data.getParameters().getString("name");
-		if (!StringUtils.isEmpty(permName) && !StringUtils.isEmpty(roleName)) {
-			Role role = security.getRoleByName(roleName);
-			Permission permission = getPermission(role, permName);
 
-			if (role != null && permission != null) {
-				try {
-
-					// remove the role-permission link first
-					Criteria criteria = new Criteria();
-					criteria.where(TurbineRolePermissionPeer.ROLE_ID, role.getId());
-					criteria.where(TurbineRolePermissionPeer.PERMISSION_ID, permission.getId());
-					org.apache.fulcrum.security.torque.om.TurbineRolePermission trp = TurbineRolePermissionPeer
-							.doSelectSingleRecord(criteria);
-					TurbineRolePermissionPeer.doDelete(trp);
-
-					// now remove the permission
-					// use torque to locate and update the obj
-					criteria = new Criteria();
-					criteria.where(TurbinePermissionPeer.PERMISSION_ID, permission.getId());
-					org.apache.fulcrum.security.torque.om.TurbinePermission tp = TurbinePermissionPeer
-							.doSelectSingleRecord(criteria);
-					TurbinePermissionPeer.doDelete(tp);
-
-					// this method is broken
-					// security.removePermission(permission);
-
-				} catch (Exception e) {
-					log.error("Could not find turbine role-permission link: " + e);
+		try {
+			String permName = data.getParameters().getString(PERM_ID);
+			if (!StringUtils.isEmpty(permName)) {
+				
+				// remove the role-permission links
+				RoleSet roles = security.getAllRoles();
+				for (Role role : roles) {
+					PermissionSet pset = security.getPermissions(role);
+					for (Permission p : pset) {
+						if (p.getName().equals(permName)) {
+							Criteria criteria = new Criteria();
+							criteria.where(TurbineRolePermissionPeer.ROLE_ID, role.getId());
+							criteria.where(TurbineRolePermissionPeer.PERMISSION_ID, p.getId());
+							org.apache.fulcrum.security.torque.om.TurbineRolePermission trp = TurbineRolePermissionPeer
+									.doSelectSingleRecord(criteria);
+							TurbineRolePermissionPeer.doDelete(trp);
+						}
+					}
 				}
+
+				// now remove the permission itself
+				
+				// this seems to be broken :-(
+				// Permission perm = security.getPermissionByName(permName);
+				// security.removePermission(perm);
+				
+				// Remove permission manually
+				Criteria criteria = new Criteria();
+				criteria.where(TurbinePermissionPeer.PERMISSION_NAME, permName);
+				TurbinePermission tp = TurbinePermissionPeer.doSelectSingleRecord(criteria);
+				TurbinePermissionPeer.doDelete(tp);
+
+			} else {
+				data.setMessage("Cannot find permission to delete");
+				setTemplate(data, "/permission/FluxPermissionList.vm");
 			}
+		} catch (Exception e) {
+			data.setMessage("An error occured while trying to remove a permission");
 		}
 	}
 
@@ -205,22 +192,4 @@ public class FluxPermissionAction extends FluxAction {
 		data.setMessage("Can't find the requested action!");
 	}
 
-	/**
-	 * Work around to locate permission associated with a particular role
-	 */
-	private Permission getPermission(Role role, String name) throws DataBackendException, UnknownEntityException {
-		Permission permission = null;
-		if (StringUtils.isEmpty(name)) {
-			permission = security.getPermissionInstance();
-		} else {
-			if (role != null) {
-				PermissionSet pset = security.getPermissions(role);
-				for (Permission p : pset)
-					if (p.getName().equals(name)) {
-						permission = p;
-					}
-			}
-		}
-		return permission;
-	}
 }

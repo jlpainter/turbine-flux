@@ -41,6 +41,7 @@
 				<a class="w3-bar-item w3-button" href="$link.setPage("user,FluxUserList.vm")">User List</a>
 				<a class="w3-bar-item w3-button" href="$link.setPage("group,FluxGroupList.vm")">User Groups</a>
 				<a class="w3-bar-item w3-button" href="$link.setPage("role,FluxRoleList.vm")">User Roles</a>
+				<a class="w3-bar-item w3-button" href="$link.setPage("permission,FluxPermissionList.vm")">Permissions</a>
 				<a class="w3-bar-item w3-button" href="$link.setPage("user,FluxUserForm.vm")?mode=insert">Add User</a>
 				#end
               		      

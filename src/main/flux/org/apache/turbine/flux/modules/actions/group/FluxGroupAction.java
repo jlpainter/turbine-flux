@@ -38,6 +38,7 @@ import org.apache.velocity.context.Context;
 public class FluxGroupAction extends FluxAction {
 
 	private static Log log = LogFactory.getLog(FluxGroupAction.class);
+	private static String GROUP_ID = "group";
 
 	/** Injected service instance */
 	@TurbineService
@@ -61,12 +62,13 @@ public class FluxGroupAction extends FluxAction {
 	public void doInsert(PipelineData pipelineData, Context context) throws Exception {
 		RunData data = getRunData(pipelineData);
 
-		String name = data.getParameters().getString("name");
+		String name = data.getParameters().getString(GROUP_ID);
 		if (!StringUtils.isEmpty(name)) {
 
 			try {
+				// create the group
 				Group group = security.getGroupInstance();
-				data.getParameters().setProperties(group);
+				group.setName(name);
 				security.addGroup(group);
 			} catch (EntityExistsException eee) {
 				context.put("name", name);
@@ -76,6 +78,8 @@ public class FluxGroupAction extends FluxAction {
 				 */
 				data.getParameters().add("mode", "insert");
 				setTemplate(data, "/admin/group/GroupForm.vm");
+			} catch (Exception e) {
+				log.error("Something bad happened");
 			}
 		} else {
 			log.error("Cannot add empty group name");
@@ -98,7 +102,7 @@ public class FluxGroupAction extends FluxAction {
 		String groupName = data.getParameters().getString("oldName");
 		if (!StringUtils.isEmpty(groupName)) {
 			Group group = security.getGroupByName(groupName);
-			String name = data.getParameters().getString("name");
+			String name = data.getParameters().getString(GROUP_ID);
 			if (!StringUtils.isEmpty(name)) {
 				try {
 					security.renameGroup(group, name);
@@ -131,7 +135,7 @@ public class FluxGroupAction extends FluxAction {
 		RunData data = getRunData(pipelineData);
 
 		try {
-			Group group = security.getGroupByName(data.getParameters().getString("name"));
+			Group group = security.getGroupByName(data.getParameters().getString(GROUP_ID));
 			security.removeGroup(group);
 		} catch (UnknownEntityException uee) {
 			/*

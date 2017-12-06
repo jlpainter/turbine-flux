@@ -12,13 +12,10 @@
 <form 
 	method="post" 
 	action="$link.setPage("permission,FluxPermissionList.vm").setAction("permission.FluxPermissionAction")">
-
-	## All permissions are related to a particular role
-	<input type="hidden" name="role" value="$!flux.CachedRole.Name">
   
 	<table class="w3-table w3-striped  w3-bordered">
       <tr>
-        #formCell ("Permission Name" "name" $!flux.Permission.Name)
+        #formCell ("Permission Name" "permission" $!flux.Permission.Name)
       </tr>
 	</table>
 

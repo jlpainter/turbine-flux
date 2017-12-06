@@ -6,10 +6,10 @@
 
 *#
 
-## Call this first so the role is cached
+## Load permissions
 #set ( $permissions = $flux.Permissions )
 
-<h2>Permissions for Role: $!flux.CachedRole.Name </h2>
+<h2>All Permissions</h2>
 
 #set ( $headings = ["Permission Name"] )
 
@@ -24,8 +24,8 @@
         <tr>
           <td> $permission.Name </td>
           <td>
-              <a href="$link.setPage("permission,FluxPermissionForm.vm").addPathInfo("name",$permission.Name).addQueryData("mode","modify")">Details</a> &nbsp;
-              <a href="$link.setPage("permission,FluxPermissionForm.vm").addPathInfo("name",$permission.Name).addQueryData("mode","delete")">Remove</a>
+              <a href="$link.setPage("permission,FluxPermissionForm.vm").addPathInfo("permission",$permission.Name).addQueryData("mode","modify")">Details</a> &nbsp;
+              <a href="$link.setPage("permission,FluxPermissionForm.vm").addPathInfo("permission",$permission.Name).addQueryData("mode","delete")">Remove</a>
           </td>
         </tr>
         #end

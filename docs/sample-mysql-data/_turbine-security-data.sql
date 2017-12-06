@@ -36,5 +36,3 @@ INSERT INTO `TURBINE_USER_GROUP_ROLE` (`USER_ID`, `GROUP_ID`, `ROLE_ID`) VALUES
 (1, 2, 1),
 (2, 2, 2),
 (2, 1, 2);
-    
-

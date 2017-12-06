@@ -8,9 +8,11 @@ import org.apache.fulcrum.security.acl.AccessControlList;
 import org.apache.fulcrum.security.entity.Group;
 import org.apache.fulcrum.security.entity.Permission;
 import org.apache.fulcrum.security.entity.Role;
+import org.apache.fulcrum.security.torque.om.TurbinePermission;
+import org.apache.fulcrum.security.torque.om.TurbinePermissionPeer;
+import org.apache.fulcrum.security.torque.om.TurbineRolePermissionPeer;
 import org.apache.fulcrum.security.torque.om.TurbineUserPeer;
 import org.apache.fulcrum.security.util.GroupSet;
-import org.apache.fulcrum.security.util.PermissionSet;
 import org.apache.fulcrum.security.util.RoleSet;
 import org.apache.torque.criteria.Criteria;
 import org.apache.turbine.annotation.TurbineConfiguration;
@@ -65,11 +67,11 @@ public class FluxTool implements ApplicationTool, RunDataApplicationTool {
 	}
 
 	public Group getGroup() throws Exception {
-		String name = data.getParameters().getString("name");
-		if (StringUtils.isEmpty(name)) {
+		String groupName = data.getParameters().getString("group");
+		if (StringUtils.isEmpty(groupName)) {
 			group = security.getGroupInstance();
 		} else {
-			group = security.getGroupByName(name);
+			group = security.getGroupByName(groupName);
 		}
 		return group;
 	}
@@ -83,11 +85,11 @@ public class FluxTool implements ApplicationTool, RunDataApplicationTool {
 	}
 
 	public Role getRole() throws Exception {
-		String name = data.getParameters().getString("name");
-		if (StringUtils.isEmpty(name)) {
+		String roleName = data.getParameters().getString("role");
+		if (StringUtils.isEmpty(roleName)) {
 			role = security.getRoleInstance();
 		} else {
-			role = security.getRoleByName(name);
+			role = security.getRoleByName(roleName);
 		}
 		return role;
 	}
@@ -98,22 +100,21 @@ public class FluxTool implements ApplicationTool, RunDataApplicationTool {
 		return security.getAllRoles();
 	}
 
-	public Permission getPermission() throws Exception {
+	public TurbinePermission getPermission() throws Exception {
 
 		// make sure that the get permission returns the one linked to the role
-		String name = data.getParameters().getString("name");
-		if (StringUtils.isEmpty(name)) {
-			permission = security.getPermissionInstance();
+		String permissionName = data.getParameters().getString("permission");
+		if (StringUtils.isEmpty(permissionName)) {
+			return null;
 		} else {
-			if (this.role != null) {
-				PermissionSet pset = security.getPermissions(role);
-				for (Permission p : pset)
-					if (p.getName().equals(name)) {
-						permission = p;
-					}
+			try {
+				Criteria criteria = new Criteria();
+				criteria.where(TurbinePermissionPeer.PERMISSION_NAME, permissionName);
+				return TurbinePermissionPeer.doSelectSingleRecord(criteria);
+			} catch (Exception e) {
+				return null;
 			}
 		}
-		return permission;
 	}
 
 	/**
@@ -126,11 +127,10 @@ public class FluxTool implements ApplicationTool, RunDataApplicationTool {
 	}
 
 	/**
-	 * Get all permissions for a particular role.
+	 * Return all permissions for a role
 	 */
-	public PermissionSet getPermissions() throws Exception {
+	public List<TurbinePermission> getRolePermissions() throws Exception {
 
-		// permissions are role based
 		String roleName = data.getParameters().getString("role");
 		if (StringUtils.isEmpty(roleName)) {
 			role = security.getRoleInstance();
@@ -138,8 +138,33 @@ public class FluxTool implements ApplicationTool, RunDataApplicationTool {
 			role = security.getRoleByName(roleName);
 		}
 
-		// return permissions based on the role
-		return security.getPermissions(role);
+		if (role != null) {
+			try {
+				Criteria criteria = new Criteria();
+				criteria.where(TurbineRolePermissionPeer.ROLE_ID, role.getId());
+				criteria.addJoin(TurbineRolePermissionPeer.PERMISSION_ID, TurbinePermissionPeer.PERMISSION_ID);
+				criteria.addAscendingOrderByColumn(TurbinePermissionPeer.PERMISSION_NAME);
+				return TurbinePermissionPeer.doSelect(criteria);
+			} catch (Exception e) {
+				return null;
+			}
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * Return all permissions
+	 */
+	public List<TurbinePermission> getPermissions() throws Exception {
+
+		try {
+			Criteria criteria = new Criteria();
+			criteria.addAscendingOrderByColumn(TurbinePermissionPeer.PERMISSION_NAME);
+			return TurbinePermissionPeer.doSelect(criteria);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	public User getUser() throws Exception {

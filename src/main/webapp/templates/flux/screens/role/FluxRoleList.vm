@@ -20,9 +20,9 @@ the application.
 	        <tr>
 	        	<td> $role.Name </td>
 	          <td>
-	              <a href="$link.setPage("permission,FluxPermissionList.vm").addPathInfo("role",$role.Name)">Permissions</a> &nbsp;
-	              <a href="$link.setPage("role,FluxRoleForm.vm").addPathInfo("name",$role.Name).addQueryData("mode","modify")">Details</a> &nbsp;
-	              <a href="$link.setPage("role,FluxRoleForm.vm").addPathInfo("name",$role.Name).addQueryData("mode","delete")">Remove</a>
+	              <a href="$link.setPage("permission,FluxRolePermissionList.vm").addPathInfo("role",$role.Name)">Permissions</a> &nbsp;
+	              <a href="$link.setPage("role,FluxRoleForm.vm").addPathInfo("role",$role.Name).addQueryData("mode","modify")">Details</a> &nbsp;
+	              <a href="$link.setPage("role,FluxRoleForm.vm").addPathInfo("role",$role.Name).addQueryData("mode","delete")">Remove</a>
 	          </td>
 	        </tr>
 	        #end

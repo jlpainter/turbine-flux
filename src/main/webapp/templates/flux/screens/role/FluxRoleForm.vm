@@ -19,7 +19,7 @@ a role.
   
 	<table class="w3-table w3-striped  w3-bordered">
       <tr>
-        #formCell ("Role Name" "name" $!flux.Role.Name)
+        #formCell ("Role Name" "role" $!flux.Role.Name)
       </tr>
 	</table>
 

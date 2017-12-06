@@ -1,5 +1,7 @@
 package org.apache.turbine.flux.modules.actions.role;
 
+import java.util.List;
+
 /*
  * Copyright 2001-2017 The Apache Software Foundation.
  *
@@ -21,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.fulcrum.security.entity.Permission;
 import org.apache.fulcrum.security.entity.Role;
+import org.apache.fulcrum.security.torque.om.TurbinePermission;
 import org.apache.fulcrum.security.torque.om.TurbinePermissionPeer;
 import org.apache.fulcrum.security.torque.om.TurbineRolePermissionPeer;
 import org.apache.fulcrum.security.util.EntityExistsException;
@@ -32,6 +35,7 @@ import org.apache.torque.criteria.Criteria;
 import org.apache.turbine.annotation.TurbineConfiguration;
 import org.apache.turbine.annotation.TurbineService;
 import org.apache.turbine.flux.modules.actions.FluxAction;
+import org.apache.turbine.fluxtest.om.TurbineRolePermission;
 import org.apache.turbine.pipeline.PipelineData;
 import org.apache.turbine.services.security.SecurityService;
 import org.apache.turbine.util.RunData;
@@ -44,6 +48,7 @@ import org.apache.velocity.context.Context;
 public class FluxRoleAction extends FluxAction {
 
 	private static Log log = LogFactory.getLog(FluxRoleAction.class);
+	private static String ROLE_ID = "role";
 
 	/** Injected service instance */
 	@TurbineService
@@ -58,7 +63,7 @@ public class FluxRoleAction extends FluxAction {
 		Role role = security.getRoleInstance();
 		data.getParameters().setProperties(role);
 
-		String name = data.getParameters().getString("name");
+		String name = data.getParameters().getString(ROLE_ID);
 		role.setName(name);
 
 		try {
@@ -90,7 +95,7 @@ public class FluxRoleAction extends FluxAction {
 	public void doUpdate(PipelineData pipelineData, Context context) throws Exception {
 		RunData data = getRunData(pipelineData);
 		Role role = security.getRoleByName(data.getParameters().getString("oldName"));
-		String name = data.getParameters().getString("name");
+		String name = data.getParameters().getString(ROLE_ID);
 		if (!StringUtils.isEmpty(name)) {
 			try {
 				security.renameRole(role, name);
@@ -121,14 +126,16 @@ public class FluxRoleAction extends FluxAction {
 		RunData data = getRunData(pipelineData);
 
 		try {
-
-			Role role = security.getRoleByName(data.getParameters().getString("name"));
+			Role role = security.getRoleByName(data.getParameters().getString(ROLE_ID));
 			
-			// test that any linked permissions are also removed before removing the role
+			// This permission call does work, but we will just remove them all based on the role
 			PermissionSet pset = security.getPermissions(role);
-			for (Permission p : pset)
-				removePermission(role, p);
 
+			// remove all role-permission link
+			Criteria criteria = new Criteria();
+			criteria.where(TurbineRolePermissionPeer.ROLE_ID, role.getId());
+			TurbineRolePermissionPeer.doDelete(criteria);
+			
 			// now remove the role
 			security.removeRole(role);
 		} catch (UnknownEntityException uee) {
@@ -149,23 +156,69 @@ public class FluxRoleAction extends FluxAction {
 	 * @param permission
 	 * @throws TorqueException
 	 */
-	private void removePermission(Role role, Permission permission) throws TorqueException {
+	public void doPermissions(PipelineData pipelineData, Context context) throws Exception {
 
-		// remove the role-permission link first
-		Criteria criteria = new Criteria();
-		criteria.where(TurbineRolePermissionPeer.ROLE_ID, role.getId());
-		criteria.where(TurbineRolePermissionPeer.PERMISSION_ID, permission.getId());
-		org.apache.fulcrum.security.torque.om.TurbineRolePermission trp = TurbineRolePermissionPeer
-				.doSelectSingleRecord(criteria);
-		TurbineRolePermissionPeer.doDelete(trp);
+		RunData data = getRunData(pipelineData);
 
-		// now remove the permission
-		// use torque to locate and update the obj
-		criteria = new Criteria();
-		criteria.where(TurbinePermissionPeer.PERMISSION_ID, permission.getId());
-		org.apache.fulcrum.security.torque.om.TurbinePermission tp = TurbinePermissionPeer
-				.doSelectSingleRecord(criteria);
-		TurbinePermissionPeer.doDelete(tp);
+		try {
+			Role role = security.getRoleByName(data.getParameters().getString(ROLE_ID));
+			
+			// broken
+			/*
+			PermissionSet allPerms = security.getAllPermissions();
+			
+			Exception caused by:
+			
+			org.apache.torque.TorqueException: org.apache.fulcrum.security.util.DataBackendException: org.apache.turbine.fluxtest.om.TurbinePermissionPeerImpl cannot be cast to org.apache.fulcrum.security.torque.peer.Peer.
+			The peer class org.apache.turbine.fluxtest.om.TurbinePermissionPeerImpl should implement interface org.apache.fulcrum.security.torque.peer.TorqueTurbinePeer
+			 of generic type <org.apache.turbine.fluxtest.om.TurbinePermission>.
+			*/
+			
+			Criteria criteria = new Criteria();
+			List<TurbinePermission> permissions =  TurbinePermissionPeer.doSelect(criteria);
+			for ( TurbinePermission tp : permissions )
+			{
+				String rolePerm = role.getName() + tp.getName();
+				String entry = data.getParameters().getString(rolePerm);
+				boolean addRolePermission = false;
+				
+				// signal to add permission
+				if (!StringUtils.isEmpty(entry))
+					addRolePermission = true;
+				
+
+				if (addRolePermission) {
+					// only add if new
+					if ( !security.getPermissions(role).containsName(tp.getName() ) )
+					{
+						// need to get the permission obj to use this
+						// security.getPermissions(role).add(permission);
+
+						// create manual link
+						TurbineRolePermission tpr = new TurbineRolePermission();
+						tpr.setRoleId((int) role.getId());
+						tpr.setPermissionId((int) tp.getId());
+						tpr.setNew(true);
+						tpr.save();
+						
+					}
+
+				} else {
+
+					if ( security.getPermissions(role).containsName(tp.getName() ) )
+					{
+						// manually remove the link
+						criteria = new Criteria();
+						criteria.where(TurbineRolePermissionPeer.ROLE_ID, role.getId());
+						criteria.where(TurbineRolePermissionPeer.PERMISSION_ID, tp.getId());
+						TurbineRolePermissionPeer.doDelete(criteria);
+					}
+				}
+			}
+			
+		} catch (Exception e) {
+			log.error("Could not remove role: " + e);
+		}
 
 	}
 

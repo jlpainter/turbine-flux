@@ -34,7 +34,7 @@
 
   <table name="TURBINE_PERMISSION" idMethod="native" 
   	baseClass="org.apache.fulcrum.security.torque.turbine.DefaultAbstractTurbinePermission"
-  	interface="org.apache.fulcrum.security.model.turbine.entity.TurbinePermission">
+  	interface="org.apache.fulcrum.security.model.turbine.entity.TurbinePermission">  
     <column name="PERMISSION_ID" required="true" primaryKey="true" type="INTEGER" javaType="object"/>
     <column name="PERMISSION_NAME" required="true" size="64" type="VARCHAR" javaName="EntityName"/>
 
@@ -81,7 +81,7 @@
     </foreign-key>
   </table>
 
-  <table name="TURBINE_USER" idMethod="idbroker" 
+  <table name="TURBINE_USER" idMethod="native" 
   	baseClass="org.apache.fulcrum.security.torque.turbine.DefaultAbstractTurbineUser"
   	interface="org.apache.fulcrum.security.model.turbine.entity.TurbineUser">
   	

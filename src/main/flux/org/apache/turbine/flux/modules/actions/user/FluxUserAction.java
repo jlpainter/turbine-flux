@@ -65,25 +65,11 @@ public class FluxUserAction extends FluxAction {
 					/*
 					 * Create a new user modeled directly from the SecurityServiceTest method
 					 */
-
-					// currently broken, gives wrong user instance type
 					User user = security.getUserInstance(username);
 					data.getParameters().setProperties(user);
 					security.addUser(user,password);
 
-					// create the turbine user object directly
-					/*TurbineUser tu = new TurbineUser();
-					data.getParameters().setProperties(tu);
-
-					// make sure username is set
-					tu.setEntityName(username);
-
-					// save
-					tu.setNew(true);
-					tu.save();*/
-
 					// Use security to force the password
-					//security.forcePassword((User) tu, password);
 					security.forcePassword(user, password);
 
 				} catch (Exception e) {
@@ -111,14 +97,6 @@ public class FluxUserAction extends FluxAction {
 				// get the new password from form submit
 				String password = data.getParameters().getString("password");
 
-				// Load the user
-				/*Criteria criteria = new Criteria();
-				criteria.where(TurbineUserPeer.LOGIN_NAME, username);
-				TurbineUser user = TurbineUserPeer.doSelectSingleRecord(criteria);*/
-
-				// this gives the wrong user type object
-				// TurbineUser user = security.getUser(username);
-				
 				// This wrapped user does work for change password though... see below
 				User tuwrap = security.getUser(username);
 
@@ -132,9 +110,6 @@ public class FluxUserAction extends FluxAction {
 
 					// save the changes to the user account
 					security.saveUser( tuwrap );
-					/*user.setNew(false);
-					user.setModified(true);
-					user.save();*/
 
 					// Only update if we received a new (non-empty) password
 					if (!StringUtils.isEmpty(password)) {
@@ -231,19 +206,6 @@ public class FluxUserAction extends FluxAction {
 							if (addGroupRole) {
 								// only add if new
 								if (!acl.hasRole(role, group)) {
-
-									/*TurbineUserGroupRole tugr = new TurbineUserGroupRole();
-									tugr.setRoleId((Integer) role.getId());
-									tugr.setGroupId((Integer) group.getId());
-									tugr.setUserId((Integer) user.getId());
-									tugr.setNew(false);
-
-									List<TurbineUserGroupRole> tgrSaved = TurbineUserGroupRolePeer.doSelect(tugr);
-									if (tgrSaved.isEmpty()) {
-										tugr.setNew(true);
-										TurbineUserGroupRolePeer.doInsert(tugr);
-									}*/
-									// turbine 4.1 should work this
 								    security.grant( user, group, role );
 								}
 
@@ -255,16 +217,20 @@ public class FluxUserAction extends FluxAction {
 									// revoke the role for this user
 									acl.getRoles(group).remove(role);
 
-									// build the db obj and remove it
-									TurbineUserGroupRole tugr = new TurbineUserGroupRole();
-									tugr.setRoleId((Integer) role.getId());
-									tugr.setGroupId((Integer) group.getId());
-									tugr.setUserId((Integer) user.getId());
-									tugr.setNew(false);
-
-									TurbineUserGroupRole tgrSaved = TurbineUserGroupRolePeer.doSelectSingleRecord(tugr);
-									if (tgrSaved != null)
-										TurbineUserGroupRolePeer.doDelete(tgrSaved);
+									// Turbine 4.0.1 ?
+									security.revoke(user,  group,  role);
+									
+//
+//									// build the db obj and remove it
+//									TurbineUserGroupRole tugr = new TurbineUserGroupRole();
+//									tugr.setRoleId((Integer) role.getId());
+//									tugr.setGroupId((Integer) group.getId());
+//									tugr.setUserId((Integer) user.getId());
+//									tugr.setNew(false);
+//
+//									TurbineUserGroupRole tgrSaved = TurbineUserGroupRolePeer.doSelectSingleRecord(tugr);
+//									if (tgrSaved != null)
+//										TurbineUserGroupRolePeer.doDelete(tgrSaved);
 
 								}
 							}
