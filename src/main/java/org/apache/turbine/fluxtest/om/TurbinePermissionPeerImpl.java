@@ -11,7 +11,7 @@ package org.apache.turbine.fluxtest.om;
  */
 
 public class TurbinePermissionPeerImpl
-    extends org.apache.turbine.fluxtest.om.BaseTurbinePermissionPeerImpl
+    extends org.apache.turbine.fluxtest.om.BaseTurbinePermissionPeerImpl implements org.apache.fulcrum.security.torque.peer.TorqueTurbinePeer<TurbinePermission>
 {
     /** Serial version */
     private static final long serialVersionUID = 1510929935623L;
