@@ -28,7 +28,6 @@ import org.apache.fulcrum.security.util.UnknownEntityException;
 import org.apache.turbine.TurbineConstants;
 import org.apache.turbine.annotation.TurbineConfiguration;
 import org.apache.turbine.annotation.TurbineService;
-import org.apache.turbine.fluxtest.modules.actions.LoginUser;
 import org.apache.turbine.om.security.User;
 import org.apache.turbine.pipeline.PipelineData;
 import org.apache.turbine.services.security.SecurityService;

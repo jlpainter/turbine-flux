@@ -199,8 +199,8 @@ public class FluxRoleAction extends FluxAction {
 
 						// create manual link
 						TurbineRolePermission tpr = new TurbineRolePermission();
-						tpr.setRoleId((int) role.getId());
-						tpr.setPermissionId((int) tp.getId());
+						tpr.setRoleId((Integer) role.getId());
+						tpr.setPermissionId((Integer) tp.getId());
 						tpr.setNew(true);
 						tpr.save();
 

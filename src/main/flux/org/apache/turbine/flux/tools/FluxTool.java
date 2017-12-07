@@ -54,7 +54,6 @@ public class FluxTool implements ApplicationTool, RunDataApplicationTool {
 	/** A User object for use within the Flux API. */
 	private User user = null;
 
-	@Override
 	public void init(Object data) {
 		this.data = (RunData) data;
 	}
@@ -223,12 +222,10 @@ public class FluxTool implements ApplicationTool, RunDataApplicationTool {
 		return (List<User>) security.getUserManager().retrieveList(criteria);
 	}
 
-	@Override
 	public void refresh(RunData data) {
 		this.data = data;
 	}
 
-	@Override
 	public void refresh() {
 		// nothing to do here
 	}
