@@ -7,5 +7,6 @@
   <a href="$link.setPage("user,FluxUserList.vm")" class="w3-btn w3-round w3-white w3-border w3-border-blue">Users</a>
   <a href="$link.setPage("group,FluxGroupList.vm")" class="w3-btn w3-round w3-white w3-border w3-border-blue">Groups</a>
   <a href="$link.setPage("role,FluxRoleList.vm")" class="w3-btn w3-round w3-white w3-border w3-border-blue">Roles</a>
+  <a href="$link.setPage("permission,FluxPermissionList.vm")" class="w3-btn w3-round w3-white w3-border w3-border-blue">Permissions</a>
 </div>
 

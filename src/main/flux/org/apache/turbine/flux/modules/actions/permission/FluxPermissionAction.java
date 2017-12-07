@@ -79,7 +79,7 @@ public class FluxPermissionAction extends FluxAction {
 		} else {
 			data.setMessage("Cannot add permission without a name");
 			data.getParameters().add("mode", "insert");
-			setTemplate(data, "/permission/FluxPermissionForm.vm");
+			data.setScreen("permission,FluxPermissionForm.vm");
 		}
 
 	}
@@ -118,7 +118,7 @@ public class FluxPermissionAction extends FluxAction {
 			
 		} else {
 			data.setMessage("Cannot find permission to update");
-			setTemplate(data, "/permission/FluxPermissionList.vm");
+			data.setScreen("permission,FluxPermissionList.vm");
 		}
 	}
 
@@ -184,7 +184,7 @@ public class FluxPermissionAction extends FluxAction {
 
 			} else {
 				data.setMessage("Cannot find permission to delete");
-				setTemplate(data, "/permission/FluxPermissionList.vm");
+				data.setScreen("permission,FluxPermissionList.vm");
 			}
 		} catch (Exception e) {
 			data.setMessage("An error occured while trying to remove a permission");
