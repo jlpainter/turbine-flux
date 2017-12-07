@@ -26,7 +26,6 @@ import org.apache.turbine.om.security.User;
 import org.apache.turbine.pipeline.PipelineData;
 import org.apache.turbine.services.security.SecurityService;
 import org.apache.turbine.util.RunData;
-import org.apache.velocity.context.Context;
 
 /**
  * Removes the user from the session and sends them to the screen.homepage
@@ -34,6 +33,7 @@ import org.apache.velocity.context.Context;
  *
  */
 public class FluxLogout extends Action {
+
 	/** Injected service instance */
 	@TurbineService
 	private SecurityService security;
@@ -63,7 +63,6 @@ public class FluxLogout extends Action {
 	public void doPerform(PipelineData pipelineData) throws FulcrumSecurityException {
 
 		RunData data = getRunData(pipelineData);
-
 		// Session validator did not run, so RunData is not populated
 		User user = data.getUserFromSession();
 
@@ -77,7 +76,7 @@ public class FluxLogout extends Action {
 			security.saveUser(user);
 		}
 
-		getRunData(data).setMessage(conf.getString(TurbineConstants.LOGOUT_MESSAGE));
+		data.setMessage(conf.getString(TurbineConstants.LOGOUT_MESSAGE));
 
 		// This will cause the acl to be removed from the session in
 		// the Turbine servlet code.

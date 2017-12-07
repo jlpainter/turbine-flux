@@ -1,23 +1,17 @@
 package org.apache.turbine.flux.modules.actions.user;
 
-import java.util.List;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.fulcrum.security.entity.Group;
 import org.apache.fulcrum.security.entity.Role;
 import org.apache.fulcrum.security.model.turbine.TurbineAccessControlList;
-import org.apache.fulcrum.security.torque.om.TurbineUser;
-import org.apache.fulcrum.security.torque.om.TurbineUserPeer;
 import org.apache.fulcrum.security.util.GroupSet;
 import org.apache.fulcrum.security.util.RoleSet;
-import org.apache.torque.criteria.Criteria;
 import org.apache.turbine.annotation.TurbineService;
 import org.apache.turbine.flux.modules.actions.FluxAction;
 import org.apache.turbine.fluxtest.om.TurbineUserGroupRole;
 import org.apache.turbine.fluxtest.om.TurbineUserGroupRolePeer;
-import org.apache.turbine.om.security.TurbineUserDelegate;
 import org.apache.turbine.om.security.User;
 import org.apache.turbine.pipeline.PipelineData;
 import org.apache.turbine.services.security.SecurityService;
@@ -55,10 +49,12 @@ public class FluxUserAction extends FluxAction {
 			 */
 			if (security.accountExists(username)) {
 				context.put("username", username);
-				context.put("errorTemplate", "/screens/user/FluxUserAlreadyExists.vm");
+				context.put("errorTemplate", "user,FluxUserAlreadyExists.vm");
 
+				data.setMessage("The user already exists");
 				data.getParameters().add("mode", "insert");
-				setTemplate(data, "/user/FluxUserForm.vm");
+				data.setScreen("user,FluxUserForm.vm");
+				return;
 			} else {
 
 				try {
@@ -67,20 +63,30 @@ public class FluxUserAction extends FluxAction {
 					 */
 					User user = security.getUserInstance(username);
 					data.getParameters().setProperties(user);
-					security.addUser(user,password);
+					security.addUser(user, password);
 
 					// Use security to force the password
 					security.forcePassword(user, password);
 
 				} catch (Exception e) {
 					log.error("Error adding new user: " + e);
+
+					context.put("username", username);
+					context.put("errorTemplate", "user,FluxUserAlreadyExists.vm");
+
+					data.setMessage("Could not add the user");
+					data.getParameters().add("mode", "insert");
+					data.setScreen("user,FluxUserForm.vm");
+					return;
 				}
 			}
 
 		} else {
-			log.error("Cannot add user without username or password");
+			String msg = "Cannot add user without username or password";
+			log.error(msg);
+			data.setMessage(msg);
 			data.getParameters().add("mode", "insert");
-			setTemplate(data, "/user/FluxUserForm.vm");
+			data.setScreen("user,FluxUserForm.vm");
 		}
 	}
 
@@ -109,7 +115,7 @@ public class FluxUserAction extends FluxAction {
 					data.getParameters().setProperties(tuwrap);
 
 					// save the changes to the user account
-					security.saveUser( tuwrap );
+					security.saveUser(tuwrap);
 
 					// Only update if we received a new (non-empty) password
 					if (!StringUtils.isEmpty(password)) {
@@ -144,11 +150,12 @@ public class FluxUserAction extends FluxAction {
 					revokeAll(user);
 
 					// manually delete from the turbine user table entry
-					/*Criteria criteria = new Criteria();
-					criteria.where(TurbineUserPeer.LOGIN_NAME, username);
-					TurbineUser tu = TurbineUserPeer.doSelectSingleRecord(criteria);
-					TurbineUserPeer.doDelete(tu);*/
-					security.removeUser( user );
+					/*
+					 * Criteria criteria = new Criteria();
+					 * criteria.where(TurbineUserPeer.LOGIN_NAME, username); TurbineUser tu =
+					 * TurbineUserPeer.doSelectSingleRecord(criteria); TurbineUserPeer.doDelete(tu);
+					 */
+					security.removeUser(user);
 
 				} else {
 					log.error("User does not exist!");
@@ -206,7 +213,7 @@ public class FluxUserAction extends FluxAction {
 							if (addGroupRole) {
 								// only add if new
 								if (!acl.hasRole(role, group)) {
-								    security.grant( user, group, role );
+									security.grant(user, group, role);
 								}
 
 							} else {
@@ -218,19 +225,20 @@ public class FluxUserAction extends FluxAction {
 									acl.getRoles(group).remove(role);
 
 									// Turbine 4.0.1 ?
-									security.revoke(user,  group,  role);
-									
-//
-//									// build the db obj and remove it
-//									TurbineUserGroupRole tugr = new TurbineUserGroupRole();
-//									tugr.setRoleId((Integer) role.getId());
-//									tugr.setGroupId((Integer) group.getId());
-//									tugr.setUserId((Integer) user.getId());
-//									tugr.setNew(false);
-//
-//									TurbineUserGroupRole tgrSaved = TurbineUserGroupRolePeer.doSelectSingleRecord(tugr);
-//									if (tgrSaved != null)
-//										TurbineUserGroupRolePeer.doDelete(tgrSaved);
+									security.revoke(user, group, role);
+
+									//
+									// // build the db obj and remove it
+									// TurbineUserGroupRole tugr = new TurbineUserGroupRole();
+									// tugr.setRoleId((Integer) role.getId());
+									// tugr.setGroupId((Integer) group.getId());
+									// tugr.setUserId((Integer) user.getId());
+									// tugr.setNew(false);
+									//
+									// TurbineUserGroupRole tgrSaved =
+									// TurbineUserGroupRolePeer.doSelectSingleRecord(tugr);
+									// if (tgrSaved != null)
+									// TurbineUserGroupRolePeer.doDelete(tgrSaved);
 
 								}
 							}

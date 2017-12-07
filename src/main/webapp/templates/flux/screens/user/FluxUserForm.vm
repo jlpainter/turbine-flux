@@ -29,18 +29,10 @@ Display the details of a user.
 		            #formCell( "First Name" "firstName" $!user.FirstName ) 
 		            #formCell( "Last Name" "lastName" $!user.LastName ) 
 		            #formCell( "Email" "email" $!user.Email ) 
-					
-			        #if ( $flux.Mode == "insert" )
-			            <input type="hidden" name="active" value="1"/>
-			        #else
-			            #formCheckBox( "Active" "active" $!user.Active )
-			        #end
-					
 					</div>
 				</div>
 			</div>
 			<div class="w3-half">				
-
 				<div id="userPassword" class="w3-card-8 w3-padding w3-white">
 					<h2>Password</h2>
 					
@@ -52,7 +44,6 @@ Display the details of a user.
 					#formPasswordCell( "New Password" "password" "" )
 					
 				</div>
-
 			</div>
 		</div>
 	</div>

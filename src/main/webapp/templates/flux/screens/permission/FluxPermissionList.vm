@@ -29,12 +29,12 @@
           </td>
         </tr>
         #end
-  <tr>
-    <td>
-        <a href="$link.setPage("permission,FluxPermissionForm.vm").addQueryData("mode","insert")">Add Permission</a>
-    <td>
-  </tr>
 </table>
+
+<div class="w3-container w3-padding w3-center">
+	<a class="w3-btn w3-blue w3-round" style="width: 180px;"
+		href="$link.setPage("permission,FluxPermissionForm.vm").addQueryData("mode","insert")">Add New Permission</a>
+</div>
 
 #if ($showEmbeddedMenu)
   <hr size="1" noshade>

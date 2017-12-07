@@ -71,13 +71,15 @@ public class FluxGroupAction extends FluxAction {
 				group.setName(name);
 				security.addGroup(group);
 			} catch (EntityExistsException eee) {
+
 				context.put("name", name);
-				context.put("errorTemplate", "/screens/admin/group/GroupAlreadyExists.vm");
+				context.put("errorTemplate", "group,GroupAlreadyExists.vm");
+
 				/*
 				 * We are still in insert mode. So keep this value alive.
 				 */
 				data.getParameters().add("mode", "insert");
-				setTemplate(data, "/admin/group/GroupForm.vm");
+				setTemplate(data, "group,GroupForm.vm");
 			} catch (Exception e) {
 				log.error("Something bad happened");
 			}

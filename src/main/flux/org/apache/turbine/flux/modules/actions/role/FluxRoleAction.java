@@ -70,13 +70,13 @@ public class FluxRoleAction extends FluxAction {
 			security.addRole(role);
 		} catch (EntityExistsException eee) {
 			context.put("name", name);
-			context.put("errorTemplate", "/screens/role/FluxRoleAlreadyExists.vm");
+			context.put("errorTemplate", "role,FluxRoleAlreadyExists.vm");
 			context.put("role", role);
 			/*
 			 * We are still in insert mode. So keep this value alive.
 			 */
 			data.getParameters().add("mode", "insert");
-			setTemplate(data, "/role/FluxRoleForm.vm");
+			data.setScreen("role,FluxRoleForm.vm");
 		}
 
 	}
@@ -100,11 +100,13 @@ public class FluxRoleAction extends FluxAction {
 			try {
 				security.renameRole(role, name);
 			} catch (UnknownEntityException uee) {
-				log.error("Could not rename role: " + uee);
+
 				/*
-				 * Should do something here but I still think we should use the an id so that
-				 * this can't happen.
+				 * We are still in update mode. So keep this value alive.
 				 */
+				data.getParameters().add("mode", "update");
+				data.setScreen("role,FluxRoleForm.vm");
+				log.error("Could not rename role: " + uee);
 			}
 		} else {
 			log.error("Cannot update role to empty name");
@@ -127,15 +129,16 @@ public class FluxRoleAction extends FluxAction {
 
 		try {
 			Role role = security.getRoleByName(data.getParameters().getString(ROLE_ID));
-			
-			// This permission call does work, but we will just remove them all based on the role
+
+			// This permission call does work, but we will just remove them all based on the
+			// role
 			PermissionSet pset = security.getPermissions(role);
 
 			// remove all role-permission link
 			Criteria criteria = new Criteria();
 			criteria.where(TurbineRolePermissionPeer.ROLE_ID, role.getId());
 			TurbineRolePermissionPeer.doDelete(criteria);
-			
+
 			// now remove the role
 			security.removeRole(role);
 		} catch (UnknownEntityException uee) {
@@ -162,35 +165,36 @@ public class FluxRoleAction extends FluxAction {
 
 		try {
 			Role role = security.getRoleByName(data.getParameters().getString(ROLE_ID));
-			
+
 			// broken
 			/*
-			PermissionSet allPerms = security.getAllPermissions();
-			
-			Exception caused by:
-			
-			org.apache.torque.TorqueException: org.apache.fulcrum.security.util.DataBackendException: org.apache.turbine.fluxtest.om.TurbinePermissionPeerImpl cannot be cast to org.apache.fulcrum.security.torque.peer.Peer.
-			The peer class org.apache.turbine.fluxtest.om.TurbinePermissionPeerImpl should implement interface org.apache.fulcrum.security.torque.peer.TorqueTurbinePeer
-			 of generic type <org.apache.turbine.fluxtest.om.TurbinePermission>.
-			*/
-			
+			 * PermissionSet allPerms = security.getAllPermissions();
+			 * 
+			 * Exception caused by:
+			 * 
+			 * org.apache.torque.TorqueException:
+			 * org.apache.fulcrum.security.util.DataBackendException:
+			 * org.apache.turbine.fluxtest.om.TurbinePermissionPeerImpl cannot be cast to
+			 * org.apache.fulcrum.security.torque.peer.Peer. The peer class
+			 * org.apache.turbine.fluxtest.om.TurbinePermissionPeerImpl should implement
+			 * interface org.apache.fulcrum.security.torque.peer.TorqueTurbinePeer of
+			 * generic type <org.apache.turbine.fluxtest.om.TurbinePermission>.
+			 */
+
 			Criteria criteria = new Criteria();
-			List<TurbinePermission> permissions =  TurbinePermissionPeer.doSelect(criteria);
-			for ( TurbinePermission tp : permissions )
-			{
+			List<TurbinePermission> permissions = TurbinePermissionPeer.doSelect(criteria);
+			for (TurbinePermission tp : permissions) {
 				String rolePerm = role.getName() + tp.getName();
 				String entry = data.getParameters().getString(rolePerm);
 				boolean addRolePermission = false;
-				
+
 				// signal to add permission
 				if (!StringUtils.isEmpty(entry))
 					addRolePermission = true;
-				
 
 				if (addRolePermission) {
 					// only add if new
-					if ( !security.getPermissions(role).containsName(tp.getName() ) )
-					{
+					if (!security.getPermissions(role).containsName(tp.getName())) {
 						// need to get the permission obj to use this
 						// security.getPermissions(role).add(permission);
 
@@ -200,13 +204,12 @@ public class FluxRoleAction extends FluxAction {
 						tpr.setPermissionId((int) tp.getId());
 						tpr.setNew(true);
 						tpr.save();
-						
+
 					}
 
 				} else {
 
-					if ( security.getPermissions(role).containsName(tp.getName() ) )
-					{
+					if (security.getPermissions(role).containsName(tp.getName())) {
 						// manually remove the link
 						criteria = new Criteria();
 						criteria.where(TurbineRolePermissionPeer.ROLE_ID, role.getId());
@@ -215,7 +218,7 @@ public class FluxRoleAction extends FluxAction {
 					}
 				}
 			}
-			
+
 		} catch (Exception e) {
 			log.error("Could not remove role: " + e);
 		}

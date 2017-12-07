@@ -26,6 +26,7 @@ import org.apache.turbine.annotation.TurbineService;
 import org.apache.turbine.modules.screens.VelocitySecureScreen;
 import org.apache.turbine.pipeline.PipelineData;
 import org.apache.turbine.services.security.SecurityService;
+import org.apache.turbine.util.RunData;
 import org.apache.velocity.context.Context;
 
 /**
@@ -59,7 +60,10 @@ public class FluxIndex extends VelocitySecureScreen {
 	}
 
 	@Override
-	protected boolean isAuthorized(PipelineData data) throws Exception {
+	protected boolean isAuthorized(PipelineData pipelineData) throws Exception {
+
+		RunData data = getRunData(pipelineData);
+
 		boolean isAuthorized = false;
 
 		/*
@@ -69,18 +73,18 @@ public class FluxIndex extends VelocitySecureScreen {
 		String fluxAdminRole = Turbine.getConfiguration().getString("flux.admin.role");
 
 		// Get the Turbine ACL implementation
-		TurbineAccessControlList acl = getRunData(data).getACL();
+		TurbineAccessControlList acl = data.getACL();
 
 		if (acl == null) {
 			// commons configuration getProperty: prefix removed, the key for the value ..
 			// is an empty string, the result an object
-			getRunData(data).setScreenTemplate((String) templateLogin.getProperty(""));
+			data.setScreenTemplate((String) templateLogin.getProperty(""));
 			isAuthorized = false;
 		} else if (acl.hasRole(fluxAdminRole)) {
 			isAuthorized = true;
 		} else {
-			getRunData(data).setScreenTemplate((String) templateHomepage.getProperty(""));
-			getRunData(data).setMessage("You do not have access to this part of the site.");
+			data.setScreenTemplate((String) templateHomepage.getProperty(""));
+			data.setMessage("You do not have access to this part of the site.");
 			isAuthorized = false;
 		}
 		return isAuthorized;

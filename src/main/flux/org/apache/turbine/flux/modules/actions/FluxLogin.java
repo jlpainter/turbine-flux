@@ -28,6 +28,7 @@ import org.apache.fulcrum.security.util.UnknownEntityException;
 import org.apache.turbine.TurbineConstants;
 import org.apache.turbine.annotation.TurbineConfiguration;
 import org.apache.turbine.annotation.TurbineService;
+import org.apache.turbine.fluxtest.modules.actions.LoginUser;
 import org.apache.turbine.om.security.User;
 import org.apache.turbine.pipeline.PipelineData;
 import org.apache.turbine.services.security.SecurityService;
@@ -65,6 +66,7 @@ public class FluxLogin extends org.apache.turbine.modules.actions.LoginUser {
 	 */
 	@Override
 	public void doPerform(PipelineData pipelineData) throws FulcrumSecurityException {
+
 		RunData data = getRunData(pipelineData);
 		String username = data.getParameters().getString(FluxLogin.CGI_USERNAME, "");
 
@@ -73,13 +75,12 @@ public class FluxLogin extends org.apache.turbine.modules.actions.LoginUser {
 		}
 
 		if (username.equals(security.getAnonymousUser().getName())) {
-			getRunData(data).setMessage("Anonymous user cannot login");
+			data.setMessage("Anonymous user cannot login");
 			reset(data);
 			return;
 		}
 
 		super.doPerform(pipelineData);
-
 	}
 
 	private void reset(RunData data) throws UnknownEntityException {
