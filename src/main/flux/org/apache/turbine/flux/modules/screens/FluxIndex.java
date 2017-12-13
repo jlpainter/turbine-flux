@@ -1,7 +1,5 @@
 package org.apache.turbine.flux.modules.screens;
 
-import org.apache.commons.configuration.Configuration;
-
 /*
  * Copyright 2001-2017 The Apache Software Foundation.
  *
@@ -18,6 +16,7 @@ import org.apache.commons.configuration.Configuration;
  * limitations under the License.
  */
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.fulcrum.security.model.turbine.TurbineAccessControlList;
 import org.apache.turbine.Turbine;
 import org.apache.turbine.TurbineConstants;

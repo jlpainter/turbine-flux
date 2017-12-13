@@ -1,13 +1,27 @@
 package org.apache.turbine.flux.modules.actions.user;
 
+/*
+ * Copyright 2001-2017 The Apache Software Foundation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.fulcrum.security.entity.Group;
 import org.apache.fulcrum.security.entity.Role;
 import org.apache.fulcrum.security.model.turbine.TurbineAccessControlList;
-import org.apache.fulcrum.security.torque.om.TurbineUserGroupRole;
-import org.apache.fulcrum.security.torque.om.TurbineUserGroupRolePeer;
 import org.apache.fulcrum.security.util.GroupSet;
 import org.apache.fulcrum.security.util.RoleSet;
 import org.apache.turbine.annotation.TurbineService;
@@ -115,13 +129,15 @@ public class FluxUserAction extends FluxAction {
 
 					// Only update if we received a new (non-empty) password
 					if (!StringUtils.isEmpty(password)) {
-						
-						// this is now broken...
-						// String oldpw = tuwrap.getPassword();
-						// security.changePassword(tuwrap, oldpw, password);
-						
+
+						// Change user password
+						security.changePassword(user, user.getPassword(), password);
+
 						// this still works
-						security.forcePassword(user,  password);
+						security.forcePassword(user, password);
+					} else {
+						data.setMessage("Cannot provide an empty password");
+						return;
 					}
 
 				}
@@ -143,12 +159,13 @@ public class FluxUserAction extends FluxAction {
 			if (!StringUtils.isEmpty(username)) {
 				if (security.accountExists(username)) {
 
-					// Turbine 4.0.1 working
+					// find the user object and remove using security mgr
 					User user = security.getUser(username);
 					security.removeUser(user);
 
 				} else {
 					log.error("User does not exist!");
+					data.setMessage("User not found!");
 				}
 			}
 		} catch (Exception e) {
@@ -214,26 +231,8 @@ public class FluxUserAction extends FluxAction {
 									// revoke the role for this user
 									acl.getRoles(group).remove(role);
 
-									
-									// BROKEN...
-									// Turbine 4.0.1 ? still not working fully,
-									// the SQL parameters seem to do two pass delete
-									// operation which only looks for user id, then role id
-									// security.revoke(user, group, role);
-
-									//
-									// build the db obj and remove it works
-									//
-									TurbineUserGroupRole tugr = new TurbineUserGroupRole();
-									tugr.setRoleId((Integer) role.getId());
-									tugr.setGroupId((Integer) group.getId());
-									tugr.setUserId((Integer) user.getId());
-									tugr.setNew(false);
-
-									TurbineUserGroupRole tgrSaved = TurbineUserGroupRolePeer.doSelectSingleRecord(tugr);
-									if (tgrSaved != null)
-										TurbineUserGroupRolePeer.doDelete(tgrSaved);
-
+									// revoke the user/group/role entry
+									security.revoke(user, group, role);
 								}
 							}
 
@@ -257,6 +256,5 @@ public class FluxUserAction extends FluxAction {
 		log.info("Running do perform!");
 		getRunData(pipelineData).setMessage("Can't find the requested action!");
 	}
-
 
 }

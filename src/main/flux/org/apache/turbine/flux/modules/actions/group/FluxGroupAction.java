@@ -105,7 +105,7 @@ public class FluxGroupAction extends FluxAction {
 		if (!StringUtils.isEmpty(groupName)) {
 			Group group = security.getGroupByName(groupName);
 			String name = data.getParameters().getString(GROUP_ID);
-			if (!StringUtils.isEmpty(name)) {
+			if (group != null && !StringUtils.isEmpty(name)) {
 				try {
 					security.renameGroup(group, name);
 				} catch (UnknownEntityException uee) {
@@ -138,7 +138,11 @@ public class FluxGroupAction extends FluxAction {
 
 		try {
 			Group group = security.getGroupByName(data.getParameters().getString(GROUP_ID));
-			security.removeGroup(group);
+			if ( group != null ) {
+				security.removeGroup(group);
+			} else {
+				data.setMessage("Could not find group to remove");
+			}
 		} catch (UnknownEntityException uee) {
 			/*
 			 * Should do something here but I still think we should use the an id so that

@@ -1,7 +1,5 @@
 package org.apache.turbine.flux.modules.actions.permission;
 
-import org.apache.commons.configuration.Configuration;
-
 /*
  * Copyright 2001-2017 The Apache Software Foundation.
  *
@@ -18,13 +16,12 @@ import org.apache.commons.configuration.Configuration;
  * limitations under the License.
  */
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.fulcrum.security.entity.Permission;
 import org.apache.fulcrum.security.entity.Role;
 import org.apache.fulcrum.security.torque.om.TurbinePermission;
 import org.apache.fulcrum.security.torque.om.TurbinePermissionPeer;
-import org.apache.fulcrum.security.util.PermissionSet;
 import org.apache.fulcrum.security.util.RoleSet;
 import org.apache.fulcrum.yaafi.framework.util.StringUtils;
 import org.apache.torque.criteria.Criteria;
@@ -71,7 +68,6 @@ public class FluxPermissionAction extends FluxAction {
 		String name = data.getParameters().getString(PERM_ID);
 		if (!StringUtils.isEmpty(name)) {
 			// create the permission
-			// org.apache.turbine.fluxtest.om.TurbinePermission or 
 			TurbinePermission tp = new TurbinePermission();
 			tp.setName(name);
 			tp.setNew(true);
@@ -101,12 +97,12 @@ public class FluxPermissionAction extends FluxAction {
 		String old_name = data.getParameters().getString("oldName");
 		String name = data.getParameters().getString(PERM_ID);
 		if (!StringUtils.isEmpty(name)) {
-			
-			/* broken
-			Permission perm = security.getPermissionByName(old_name);
-			security.renamePermission(perm, name);
-			*/
-			
+
+			/*
+			 * broken Permission perm = security.getPermissionByName(old_name);
+			 * security.renamePermission(perm, name);
+			 */
+
 			// manual rename
 			Criteria criteria = new Criteria();
 			criteria.where(TurbinePermissionPeer.PERMISSION_NAME, old_name);
@@ -115,7 +111,7 @@ public class FluxPermissionAction extends FluxAction {
 				tp.setName(name);
 				tp.save();
 			}
-			
+
 		} else {
 			data.setMessage("Cannot find permission to update");
 			data.setScreen("permission,FluxPermissionList.vm");
@@ -137,50 +133,19 @@ public class FluxPermissionAction extends FluxAction {
 
 		try {
 			String permName = data.getParameters().getString(PERM_ID);
-			
+
 			if (!StringUtils.isEmpty(permName)) {
-			    // just 
-			    org.apache.fulcrum.security.model.turbine.entity.TurbinePermission perm = security.<org.apache.fulcrum.security.model.turbine.entity.TurbinePermission>getPermissionByName(permName);
-	             // remove the role-permission links
-			    RoleSet roles = perm.getRoles();
-				//RoleSet roles = security.getAllRoles();
+				// just
+				org.apache.fulcrum.security.model.turbine.entity.TurbinePermission perm = security.<org.apache.fulcrum.security.model.turbine.entity.TurbinePermission>getPermissionByName(
+						permName);
+				// remove the role-permission links
+				RoleSet roles = perm.getRoles();
 				for (Role role : roles) {
-					security.revoke( role, perm );
-					/*for (Permission p : pset) {
-						if (p.getName().equals(permName)) {
-							Criteria criteria = new Criteria();
-							criteria.where(TurbineRolePermissionPeer.ROLE_ID, role.getId());
-							criteria.where(TurbineRolePermissionPeer.PERMISSION_ID, p.getId());
-							org.apache.fulcrum.security.torque.om.TurbineRolePermission trp = TurbineRolePermissionPeer
-									.doSelectSingleRecord(criteria);
-							TurbineRolePermissionPeer.doDelete(trp);
-						}
-					}*/
+					security.revoke(role, perm);
 				}
-				
-				// now remove the permission itself
-				// Exception:
-				//  The peer class org.apache.turbine.fluxtest.om.TurbinePermissionPeerImpl 
-				//  should implement interface 
-				//  org.apache.fulcrum.security.torque.peer.TorqueTurbinePeer
-				//  of generic type <org.apache.turbine.fluxtest.om.TurbinePermission>
-				// Reason (copied from fulcrum/security/torque/schema):
-				//  after Torque 4.1 is released, add attribute peerInterface="org.apache.fulcrum.security.torque.peer.TorqueTurbinePeer" 
-				//  to tables TURBINE_PERMISSION,TURBINE_ROLE,TURBINE_GROUP,TURBINE_USER, 
-				//  cft. https://issues.apache.org/jira/browse/TRB-92 and https://issues.apache.org/jira/browse/TORQUE-309.
-				// Solution: 
-				//  Adding manually interface to o.a.t.fluxtest.om.TurbinePermissionPeerImpl
-				//  implements org.apache.fulcrum.security.torque.peer.TorqueTurbinePeer<TurbinePermission>
-				// Result:
-				//  We should really ask Apache Db Torque to release v 4.1!
-				// or if using another cast may use  perm.delete(); ?
+
+				// Remove the permission
 				security.removePermission(perm);
-				
-				// Remove permission manually
-//				Criteria criteria = new Criteria();
-//				criteria.where(TurbinePermissionPeer.PERMISSION_NAME, permName);
-//				TurbinePermission tp = TurbinePermissionPeer.doSelectSingleRecord(criteria);
-//				TurbinePermissionPeer.doDelete(tp);
 
 			} else {
 				data.setMessage("Cannot find permission to delete");
